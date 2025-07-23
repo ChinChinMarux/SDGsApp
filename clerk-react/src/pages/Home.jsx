@@ -66,10 +66,7 @@ export default function Home() {
           left: "-50%",
           right: "-50%",
           bottom: "-50%",
-          background: `
-            radial-gradient(circle at 20% 30%, rgba(255,255,255,0.1) 0%, transparent 20%),
-            radial-gradient(circle at 80% 70%, rgba(255,255,255,0.1) 0%, transparent 20%)
-          `,
+          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
           animation: "rotate 20s linear infinite",
           "@keyframes rotate": {
             "0%": { transform: "rotate(0deg)" },
