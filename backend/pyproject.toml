@@ -8,7 +8,6 @@ dependencies = [
     "clerk-backend-api>=2.2.0",
     "fastapi>=0.115.12",
     "python-dotenv>=1.1.0",
-
     "svix>=1.65.0",
     "uvicorn>=0.34.2",
 ]
