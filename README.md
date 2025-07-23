@@ -50,7 +50,7 @@ This project is collaboratively built by:
 ## 📚 Features
 
 - 📝 Upload `.pdf` or `.docx` documents
-- 🧠 Topic modeling using LDA/NMF/BERT-based models
+- 🧠 Topic modeling using LDA-based models
 - 🗂️ Automatic keyword extraction
 - 🎯 SDG classification based on keyword-to-SDG alignment
 - 📊 Dashboard with interactive charts & SDG mapping heatmap
@@ -65,7 +65,7 @@ This project is collaboratively built by:
 git clone https://github.com/your-username/sdg-mapping-tools.git
 cd sdg-mapping-tools
 
-
+```
 ---
 
 Jika Anda ingin, saya juga bisa membantu membuat struktur folder project beserta file `.env.example`, `requirements.txt`, atau `package.json` jika dibutuhkan.
