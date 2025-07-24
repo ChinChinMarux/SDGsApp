@@ -123,7 +123,7 @@ export default function Home() {
             }
           }}>
             <Chip 
-              label="AI-Powered Analysis" 
+              label="ML-Powered Analysis" 
               color="primary" 
               variant="outlined"
               sx={{ 
