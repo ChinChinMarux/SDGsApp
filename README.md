@@ -49,7 +49,7 @@ This project is collaboratively built by:
 
 ## 📚 Features
 
-- 📝 Upload `.pdf` or `.docx` documents
+- 📝 Upload `.csv` or `.xlsx` documents
 - 🧠 Topic modeling using LDA-based models
 - 🗂️ Automatic keyword extraction
 - 🎯 SDG classification based on keyword-to-SDG alignment
