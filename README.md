@@ -96,6 +96,3 @@ ReDoc: http://localhost:8000/redoc
 
 ## 🤝 Acknowledgements
 This project is built in collaboration with the Pusat Riset Sains Data dan Informasi – BRIN Bandung to support national research alignment with the UN Sustainable Development Goals (SDGs).
-
-
-Jika Anda ingin, saya juga bisa membantu membuat struktur folder project beserta file `.env.example`, `requirements.txt`, atau `package.json` jika dibutuhkan.
