@@ -64,8 +64,38 @@ This project is collaboratively built by:
 ```bash
 git clone https://github.com/your-username/sdg-mapping-tools.git
 cd sdg-mapping-tools
-
 ```
----
+### 2. Setup Backend
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # or venv\Scripts\activate on Windows
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+### 3. Setup Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
+### 4. Setup MongoDB URL inside .env
+```bash
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/sdgdb
+```
+
+## API Documentation
+Swagger UI: http://localhost:8000/docs
+ReDoc: http://localhost:8000/redoc
+
+## 📈 Future Plans
+- ✅ Fine-tuned SDG classifier with machine learning
+- 🌐 Multilingual document support
+- 🧩 Knowledge graph visualization using SDG ontology
+- 🔐 Role-based access control for stakeholders and researchers
+
+## 🤝 Acknowledgements
+This project is built in collaboration with the Pusat Riset Sains Data dan Informasi – BRIN Bandung to support national research alignment with the UN Sustainable Development Goals (SDGs).
+
 
 Jika Anda ingin, saya juga bisa membantu membuat struktur folder project beserta file `.env.example`, `requirements.txt`, atau `package.json` jika dibutuhkan.
