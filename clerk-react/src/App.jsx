@@ -4,8 +4,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Home from "./pages/Home"; // Tambahkan ini
-import Dashboard from "./pages/Dashboard"; // Tambahkan ini jika ada halaman Dashboard
-import Dokumen from "./components/DocumentContent"; // Tambahkan ini jika ada halaman Dokumen
+import MainDashboard from "./pages/MainDashboard"; // Tambahkan ini jika ada halaman Dashboard
+import ProfileContent from "./components/ProfileContent"; // Tambahkan ini jika ada halaman Profile
+
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -16,10 +17,9 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/dokumen" element={<Dokumen />} />
-          
+          <Route path="/register" element={<Register />} />2
+          <Route path="/dashboard" element={<MainDashboard />} />
+          <Route path="/profile" element={<ProfileContent />} />
         </Routes>
       </BrowserRouter>
     </ClerkProvider>
