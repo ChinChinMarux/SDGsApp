@@ -102,10 +102,10 @@ const DashboardContent = ({ isDarkMode }) => {
     return null;
   };
 
-  const bgColor = isDarkMode ? '#2b2b3a' : '#ffffff';
+  const bgColor = isDarkMode ? '#1e1e2e' : '#ffffff';
   const textColor = isDarkMode ? '#e0e0e0' : '#2c3e50';
   const borderColor = isDarkMode ? '#333' : '#e9ecef';
-  const tableHeaderBg = isDarkMode ? '#2b2b3a' : '#f8f9fa';
+  const tableHeaderBg = isDarkMode ? '#1e1e2e' : '#f8f9fa';
 
   return (
     <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 16px' }}>

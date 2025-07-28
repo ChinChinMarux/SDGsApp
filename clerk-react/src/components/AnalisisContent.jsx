@@ -45,7 +45,7 @@ const SDGAnalysisPage = ({ isDarkMode = false }) => {
   const bgColor = isDarkMode ? '#2b2b3a' : '#ffffff';
   const textColor = isDarkMode ? '#e0e0e0' : '#2c3e50';
   const borderColor = isDarkMode ? '#333' : '#e9ecef';
-  const appBarColor = isDarkMode ? '#1e1e2e' : '#ffffff';
+
 
   // Generate options for Jumlah Topik (1-25)
   const topikOptions = Array.from({ length: 25 }, (_, i) => i + 1);
@@ -340,7 +340,7 @@ const SDGAnalysisPage = ({ isDarkMode = false }) => {
             {/* Dokumen/Korpus Dropdown */}
             <Box>
               <Typography variant="body2" sx={{ color: textColor, mb: 1.5, fontWeight: 600 }}>
-                Dokumen
+                File
               </Typography>
               <FormControl fullWidth>
                 <Select
