@@ -65,7 +65,7 @@ function MainDashboard() {
       primary: { main: '#6366f1' },
       background: {
         default: isDarkMode ? '#0f172a' : '#f8fafc',
-        paper: isDarkMode ? '#2b2b3a' : '#ffffff',
+        paper: isDarkMode ? '#1e1e2e' : '#ffffff',
       },
       text: {
         primary: isDarkMode ? '#f1f5f9' : '#0f172a',
