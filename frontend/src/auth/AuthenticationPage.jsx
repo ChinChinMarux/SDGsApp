@@ -10,6 +10,24 @@ import {
   Tooltip,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import VolunteerActivismIcon from '@mui/icons-material/VolunteerActivism';
+import RestaurantIcon from '@mui/icons-material/Restaurant';
+import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import SchoolIcon from '@mui/icons-material/School';
+import WcIcon from '@mui/icons-material/Wc';
+import WaterDropIcon from '@mui/icons-material/WaterDrop';
+import BoltIcon from '@mui/icons-material/Bolt';
+import WorkIcon from '@mui/icons-material/Work';
+import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
+import Diversity3Icon from '@mui/icons-material/Diversity3';
+import LocationCityIcon from '@mui/icons-material/LocationCity';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import CloudIcon from '@mui/icons-material/Cloud';
+import WavesIcon from '@mui/icons-material/Waves';
+import ForestIcon from '@mui/icons-material/Forest';
+import GavelIcon from '@mui/icons-material/Gavel';
+import HandshakeIcon from '@mui/icons-material/Handshake';
+
 
 const CustomContainer = styled(Box)(({ theme }) => ({
   minHeight: "100vh",
@@ -55,7 +73,6 @@ const RightPanel = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  backgroundColor: "#fafafa",
   [theme.breakpoints.down('md')]: {
     padding: theme.spacing(4),
   }
@@ -102,7 +119,7 @@ const ClerkContainer = styled(Box)(({ theme }) => ({
   },
   "& .cl-card": {
     boxShadow: "none",
-    backgroundColor: "transparent",
+    backgroundColor: "linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)",
   },
   "& .cl-headerTitle": {
     fontSize: "2rem",
@@ -163,27 +180,52 @@ const ClerkContainer = styled(Box)(({ theme }) => ({
       textDecoration: "underline",
     },
   },
+  // PENTING: Jangan override loading states dan spinner dari Clerk
+  "& .cl-spinner": {
+    display: "block !important",
+    visibility: "visible !important",
+    opacity: "1 !important",
+  },
+  "& .cl-loading": {
+    display: "flex !important",
+    visibility: "visible !important",
+    opacity: "1 !important",
+  },
+  // Pastikan overlay loading terlihat
+  "& .cl-modalBackdrop": {
+    display: "flex !important",
+    visibility: "visible !important",
+    opacity: "1 !important",
+    zIndex: "9999 !important",
+  },
+  // Loading content harus terlihat
+  "& .cl-loadingBox": {
+    display: "flex !important",
+    visibility: "visible !important",
+    opacity: "1 !important",
+  }
 }));
 
 const sdgData = [
-  { color: "#E5243B", name: "No Poverty" },
-  { color: "#DDA83A", name: "Zero Hunger" },
-  { color: "#4C9F38", name: "Good Health and Well-being" },
-  { color: "#C5192D", name: "Quality Education" },
-  { color: "#FF3A21", name: "Gender Equality" },
-  { color: "#26BDE2", name: "Clean Water and Sanitation" },
-  { color: "#FCC30B", name: "Affordable and Clean Energy" },
-  { color: "#A21942", name: "Decent Work and Economic Growth" },
-  { color: "#FD6925", name: "Industry, Innovation and Infrastructure" },
-  { color: "#DD1367", name: "Reduced Inequality" },
-  { color: "#FD9D24", name: "Sustainable Cities and Communities" },
-  { color: "#BF8B2E", name: "Responsible Consumption and Production" },
-  { color: "#3F7E44", name: "Climate Action" },
-  { color: "#0A97D9", name: "Life Below Water" },
-  { color: "#56C02B", name: "Life on Land" },
-  { color: "#00689D", name: "Peace and Justice Strong Institutions" },
-  { color: "#19486A", name: "Partnerships to achieve the Goal" }
+  { color: "#E5243B", icon: <VolunteerActivismIcon />, name: "No Poverty" },
+  { color: "#DDA83A", icon: <RestaurantIcon />, name: "Zero Hunger" },
+  { color: "#4C9F38", icon: <LocalHospitalIcon />, name: "Good Health and Well-being" },
+  { color: "#C5192D", icon: <SchoolIcon />, name: "Quality Education" },
+  { color: "#FF3A21", icon: <WcIcon />, name: "Gender Equality" },
+  { color: "#26BDE2", icon: <WaterDropIcon />, name: "Clean Water and Sanitation" },
+  { color: "#FCC30B", icon: <BoltIcon />, name: "Affordable and Clean Energy" },
+  { color: "#A21942", icon: <WorkIcon />, name: "Decent Work and Economic Growth" },
+  { color: "#FD6925", icon: <PrecisionManufacturingIcon />, name: "Industry, Innovation and Infrastructure" },
+  { color: "#DD1367", icon: <Diversity3Icon />, name: "Reduced Inequality" },
+  { color: "#FD9D24", icon: <LocationCityIcon />, name: "Sustainable Cities and Communities" },
+  { color: "#BF8B2E", icon: <ShoppingCartIcon />, name: "Responsible Consumption and Production" },
+  { color: "#3F7E44", icon: <CloudIcon />, name: "Climate Action" },
+  { color: "#0A97D9", icon: <WavesIcon />, name: "Life Below Water" },
+  { color: "#56C02B", icon: <ForestIcon />, name: "Life on Land" },
+  { color: "#00689D", icon: <GavelIcon />, name: "Peace and Justice Strong Institutions" },
+  { color: "#19486A", icon: <HandshakeIcon />, name: "Partnerships to achieve the Goal" }
 ];
+
 
 export function AuthenticationPage() {
   const navigate = useNavigate();
@@ -203,6 +245,66 @@ export function AuthenticationPage() {
 function CustomAuthLayout() {
   const currentPath = window.location.pathname;
   const isSignUp = currentPath.includes('/sign-up');
+  const isCallback = currentPath.includes('/sso-callback');
+
+  // Jika ini adalah callback SSO, tampilkan loading saja
+  if (isCallback) {
+    return (
+      <CustomContainer>
+        <Box 
+          sx={{ 
+            textAlign: 'center',
+            fontFamily: 'Segoe UI, sans-serif', 
+            color: 'white', 
+            fontSize: '1.2rem',
+            fontWeight: 500,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 2
+          }}
+        >
+          <Box
+            sx={{
+              width: 40,
+              height: 40,
+              border: '4px solid rgba(255,255,255,0.3)',
+              borderTop: '4px solid white',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+              '@keyframes spin': {
+                '0%': { transform: 'rotate(0deg)' },
+                '100%': { transform: 'rotate(360deg)' }
+              }
+            }}
+          />
+          Processing sign-in...
+        </Box>
+      </CustomContainer>
+    );
+  }
+
+  // Appearance configuration yang lebih aman untuk SSO
+  const baseAppearance = {
+    elements: {
+      rootBox: "w-full",
+      card: "transparent",
+      headerTitle: "text-2xl font-bold text-gray-800 mb-2",
+      headerSubtitle: "text-gray-600 text-base mb-6",
+      formFieldInput: "rounded-lg bg-gray-100 h-12 border border-gray-300 hover:border-blue-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200",
+      formFieldLabel: "font-medium text-gray-800 mb-2",
+      formButtonPrimary: "h-12 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-base font-semibold",
+      socialButtonsBlockButton: "h-12 rounded-lg border-gray-300 text-gray-600 hover:border-blue-500 hover:bg-blue-50",
+      footerActionLink: "text-blue-500 hover:underline",
+      dividerLine: "bg-gray-300",
+      dividerText: "text-gray-500",
+      // JANGAN override elemen loading ini
+      spinner: "", // Biarkan kosong agar menggunakan default
+      loading: "", // Biarkan kosong agar menggunakan default
+      modalBackdrop: "", // Biarkan kosong agar menggunakan default
+      loadingBox: "", // Biarkan kosong agar menggunakan default
+    }
+  };
 
   return (
     <CustomContainer>
@@ -215,9 +317,6 @@ function CustomAuthLayout() {
             </LogoCircle>
             <Typography variant="h4" fontWeight="bold" gutterBottom>
               SDG Mapping Tools
-            </Typography>
-            <Typography variant="h6" sx={{ mb: 1, opacity: 0.9 }}>
-              Topic Modelling LDA
             </Typography>
             <Typography 
               variant="body1" 
@@ -233,13 +332,13 @@ function CustomAuthLayout() {
             <Grid container spacing={1} sx={{ maxWidth: 280 }}>
               {sdgData.map((sdg, index) => (
                 <Grid item xs={2} key={index}>
-                  <Tooltip title={`SDG ${index + 1}: ${sdg.name}`} placement="top" arrow>
+                    <Tooltip title={`SDG ${index + 1}: ${sdg.name}`} placement="top" arrow>
                     <SDGCircle sx={{ backgroundColor: sdg.color }}>
-                      {index + 1}
+                        {sdg.icon}
                     </SDGCircle>
-                  </Tooltip>
+                    </Tooltip>
                 </Grid>
-              ))}
+                ))}
             </Grid>
           </LeftPanel>
 
@@ -248,43 +347,17 @@ function CustomAuthLayout() {
             <ClerkContainer>
               {isSignUp ? (
                 <SignUp 
-                  path="/sign-up" 
-                  routing="path"
+                  routing="hash"
                   signInUrl="/sign-in"
-                  appearance={{
-                    elements: {
-                      rootBox: "w-full",
-                      card: "shadow-none bg-transparent",
-                      headerTitle: "text-2xl font-bold text-gray-800 mb-2",
-                      headerSubtitle: "text-gray-600 text-base mb-6",
-                      formFieldInput: "rounded-lg bg-gray-100 h-12 border border-gray-300 hover:border-blue-500 focus:border-blue-500",
-                      formFieldLabel: "font-medium text-gray-800 mb-2",
-                      formButtonPrimary: "h-12 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-base font-semibold",
-                      socialButtonsBlockButton: "h-12 rounded-lg border-gray-300 text-gray-600 hover:border-blue-500 hover:bg-blue-50",
-                      footerActionLink: "text-blue-500 hover:underline",
-                    }
-                  }}
+                  appearance={baseAppearance}
+                  afterSignUpUrl="/dashboard"
                 />
               ) : (
                 <SignIn 
-                  path="/sign-in" 
-                  routing="path"
+                  routing="hash"
                   signUpUrl="/sign-up"
-                  appearance={{
-                    elements: {
-                      rootBox: "w-full",
-                      card: "shadow-none bg-transparent",
-                      headerTitle: "text-2xl font-bold text-gray-800 mb-2",
-                      headerSubtitle: "text-gray-600 text-base mb-6",
-                      formFieldInput: "rounded-lg bg-gray-100 h-12 border border-gray-300 hover:border-blue-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200",
-                      formFieldLabel: "font-medium text-gray-800 mb-2",
-                      formButtonPrimary: "h-12 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-base font-semibold",
-                      socialButtonsBlockButton: "h-12 rounded-lg border-gray-300 text-gray-600 hover:border-blue-500 hover:bg-blue-50",
-                      footerActionLink: "text-blue-500 hover:underline",
-                      dividerLine: "bg-gray-300",
-                      dividerText: "text-gray-500",
-                    }
-                  }}
+                  appearance={baseAppearance}
+                  afterSignInUrl="/dashboard"
                 />
               )}
             </ClerkContainer>
