@@ -1,9 +1,9 @@
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from fastapi.responses import StreamingResponse
 from bson import ObjectId
-from models.corpus_models import Corpus
-from motor.motor_asyncio import AsyncIOMotorClient, GridFSBucket
-from config import db
+from src.models.corpus_models import Corpus
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorGridFSBucket
+from src.config import db
 from datetime import datetime
 import os
 import uuid
@@ -69,7 +69,7 @@ async def delete_corpus(corpus_id: str):
 
 @router.get("/corpus/download/{corpus_id}")
 async def download_file(corpus_id: str):
-    fs = GridFSBucket(db)
+    fs = AsyncIOMotorGridFSBucket(db)
     try:
         stream = await fs.open_download_stream(ObjectId(corpus_id))
     except Exception:

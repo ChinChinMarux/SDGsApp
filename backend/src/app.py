@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, Response
-from fastapi.middleware import CORSMiddleware
-from routes.__init__ import init_db
-from routes import corpus_routes, analysis_routes, sdg_reference_routes, sdg_mapping_routes
+from fastapi.middleware.cors import CORSMiddleware
+from src.routes.__init__ import init_db
+from src.routes import corpus_routes, analysis_routes, sdg_reference_routes, sdg_mapping_routes
 
 app = FastAPI()
 

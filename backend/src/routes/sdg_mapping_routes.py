@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from models.sdg_mapping_models import SDGMapping
-from config import db
+from src.models.sdg_mapping_models import SDGMapping
+from src.config import db
 
 router = APIRouter()
 
