@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -8,17 +8,12 @@ import {
   MenuItem,
   Select,
   FormControl,
-  InputLabel,
   LinearProgress,
-  AppBar,
-  Toolbar,
-  Tab,
-  Tabs,
   IconButton,
-  Avatar
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import {
-  Dashboard as DashboardIcon,
   Description as DocumentIcon,
   Analytics as AnalyticsIcon,
   Upload as UploadIcon,
@@ -33,57 +28,135 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  ResponsiveContainer
+  ResponsiveContainer,
+  Tooltip
 } from 'recharts';
 
-const SDGAnalysisPage = ({ isDarkMode = false }) => {
-  const [activeTab, setActiveTab] = useState(1);
+const AnalisisContent = ({ isDarkMode = false }) => {
+  // State untuk konfigurasi analisis
   const [jumlahTopik, setJumlahTopik] = useState('');
   const [maxIterations, setMaxIterations] = useState('');
   const [selectedDokumen, setSelectedDokumen] = useState('');
+  
+  // State untuk data
+  const [korpusOptions, setKorpusOptions] = useState([]);
+  const [topicData, setTopicData] = useState([]);
+  const [sdgResults, setSdgResults] = useState([]);
+  
+  // State untuk loading dan error
+  const [loading, setLoading] = useState({
+    documents: false,
+    analysis: false
+  });
+  const [error, setError] = useState(null);
+  const [analysisId, setAnalysisId] = useState(null);
 
+  // Warna tema
   const bgColor = isDarkMode ? '#2b2b3a' : '#ffffff';
   const textColor = isDarkMode ? '#e0e0e0' : '#2c3e50';
   const borderColor = isDarkMode ? '#333' : '#e9ecef';
 
+  // Fetch dokumen dari MongoDB
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      setLoading(prev => ({ ...prev, documents: true }));
+      setError(null);
+      
+      try {
+        const response = await fetch('http://localhost:8000/api/documents', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Gagal mengambil dokumen');
+        }
+        
+        const data = await response.json();
+        setKorpusOptions(data.documents);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(prev => ({ ...prev, documents: false }));
+      }
+    };
 
-  // Generate options for Jumlah Topik (1-25)
-  const topikOptions = Array.from({ length: 25 }, (_, i) => i + 1);
+    fetchDocuments();
+  }, []);
 
-  // Mock data for korpus - in real app, this would come from MongoDB
-  const korpusOptions = [
-    { id: 'corp_001', name: 'Dokumen Kebijakan Pemerintah 2024' },
-    { id: 'corp_002', name: 'Laporan Pembangunan Berkelanjutan' },
-    { id: 'corp_003', name: 'Artikel Akademik SDG Indonesia' },
-    { id: 'corp_004', name: 'Dokumen RPJMN 2020-2024' },
-    { id: 'corp_005', name: 'Rencana Strategis Kementerian' },
-    { id: 'corp_006', name: 'Publikasi BPS Terkait SDG' },
-    { id: 'corp_007', name: 'Laporan CSR Perusahaan' }
-  ];
+  // Polling untuk hasil analisis
+  useEffect(() => {
+    if (!analysisId) return;
 
-  // Data untuk Topic Distribution chart
-  const topicData = [
-    { name: 'SDG 1: No Poverty', value: 14 },
-    { name: 'SDG 3: Good Health', value: 20 },
-    { name: 'SDG 4: Quality Education', value: 17 },
-    { name: 'SDG 5: Gender Equality', value: 11 },
-    { name: 'SDG 6: Clean Water', value: 18 },
-    { name: 'SDG 13: Climate Action', value: 13 }
-  ];
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch(`http://localhost:8000/api/analysis/status/${analysisId}`);
+        const data = await response.json();
+        
+        if (data.status === 'completed') {
+          clearInterval(interval);
+          setTopicData(data.results.topic_distribution);
+          setSdgResults(data.results.sdg_mapping);
+          setLoading(prev => ({ ...prev, analysis: false }));
+        } else if (data.status === 'failed') {
+          clearInterval(interval);
+          setError('Analisis gagal: ' + data.message);
+          setLoading(prev => ({ ...prev, analysis: false }));
+        }
+      } catch (err) {
+        clearInterval(interval);
+        setError('Gagal memeriksa status analisis');
+        setLoading(prev => ({ ...prev, analysis: false }));
+      }
+    }, 3000);
 
-  // Data untuk SDG Mapping Results
-  const sdgResults = [
-    { title: 'SDG 1: No Poverty', percentage: 15, color: '#e53e3e' },
-    { title: 'SDG 3: Good Health', percentage: 22, color: '#38a169' },
-    { title: 'SDG 4: Quality Education', percentage: 18, color: '#e53e3e' },
-    { title: 'SDG 5: Economic Growth', percentage: 12, color: '#805ad5' },
-    { title: 'SDG 6: Climate Action', percentage: 20, color: '#38a169' }
-  ];
+    return () => clearInterval(interval);
+  }, [analysisId]);
 
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
+  // Handler untuk memulai analisis
+  const handleStartAnalysis = async () => {
+    setLoading(prev => ({ ...prev, analysis: true }));
+    setError(null);
+    
+    try {
+      const response = await fetch('http://localhost:8000/api/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          document_id: selectedDokumen,
+          num_topics: jumlahTopik,
+          iterations: maxIterations
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Gagal memulai analisis');
+      }
+      
+      const data = await response.json();
+      setAnalysisId(data.analysis_id);
+    } catch (err) {
+      setError(err.message);
+      setLoading(prev => ({ ...prev, analysis: false }));
+    }
   };
 
+  // Handler untuk reset form dan hasil
+  const handleResetAnalysis = () => {
+    setJumlahTopik('');
+    setMaxIterations('');
+    setSelectedDokumen('');
+    setTopicData([]);
+    setSdgResults([]);
+    setAnalysisId(null);
+    setError(null);
+  };
+
+  // Handler untuk perubahan input
   const handleJumlahTopikChange = (event) => {
     setJumlahTopik(event.target.value);
   };
@@ -100,9 +173,11 @@ const SDGAnalysisPage = ({ isDarkMode = false }) => {
     setSelectedDokumen('');
   };
 
+  // Opsi jumlah topik
+  const topikOptions = Array.from({ length: 25 }, (_, i) => i + 1);
+
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: isDarkMode ? 'rgba(26, 26, 46, 0)' : 'rgba(245, 245, 245, 0)' }}>
-      {/* Main Content */}
       <Box sx={{ maxWidth: '1440px', margin: '0 auto', p: 2 }}>
         {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, mt: 2 }}>
@@ -112,6 +187,7 @@ const SDGAnalysisPage = ({ isDarkMode = false }) => {
           <Button
             variant="contained"
             startIcon={<AnalyticsIcon />}
+            onClick={handleResetAnalysis}
             sx={{
               backgroundColor: '#764ba2',
               color: 'white',
@@ -128,6 +204,13 @@ const SDGAnalysisPage = ({ isDarkMode = false }) => {
             Analisis Baru
           </Button>
         </Box>
+
+        {/* Error Alert */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
 
         {/* Configuration Section */}
         <Paper 
@@ -348,6 +431,7 @@ const SDGAnalysisPage = ({ isDarkMode = false }) => {
                   onChange={handleDokumenChange}
                   displayEmpty
                   IconComponent={ArrowDownIcon}
+                  disabled={loading.documents}
                   sx={{
                     backgroundColor: bgColor,
                     borderRadius: 2,
@@ -380,7 +464,7 @@ const SDGAnalysisPage = ({ isDarkMode = false }) => {
                   }}
                   renderValue={(selected) => {
                     if (!selected) return 'Pilih korpus...';
-                    const korpus = korpusOptions.find(k => k.id === selected);
+                    const korpus = korpusOptions.find(k => k._id === selected);
                     return (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                         <Box sx={{ 
@@ -399,13 +483,13 @@ const SDGAnalysisPage = ({ isDarkMode = false }) => {
                         </Box>
                         <Box>
                           <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                            {korpus?.name}
+                            {korpus?.filename}
                           </Typography>
                           <Typography variant="caption" sx={{ 
                             color: isDarkMode ? '#aaa' : '#666',
                             fontSize: 10
                           }}>
-                            {korpus?.id}
+                            {korpus?._id}
                           </Typography>
                         </Box>
                       </Box>
@@ -477,8 +561,8 @@ const SDGAnalysisPage = ({ isDarkMode = false }) => {
                   </MenuItem>
                   {korpusOptions.map((korpus, index) => (
                     <MenuItem 
-                      key={korpus.id} 
-                      value={korpus.id}
+                      key={korpus._id} 
+                      value={korpus._id}
                       sx={{ 
                         color: textColor,
                         py: 1.5,
@@ -525,7 +609,7 @@ const SDGAnalysisPage = ({ isDarkMode = false }) => {
                             textOverflow: 'ellipsis',
                             whiteSpace: 'nowrap'
                           }}>
-                            {korpus.name}
+                            {korpus.filename}
                           </Typography>
                           <Typography variant="caption" sx={{ 
                             color: 'inherit', 
@@ -542,7 +626,7 @@ const SDGAnalysisPage = ({ isDarkMode = false }) => {
                               borderRadius: '50%', 
                               backgroundColor: 'currentColor' 
                             }} />
-                            ID: {korpus.id}
+                            {new Date(korpus.uploadDate).toLocaleDateString()}
                           </Typography>
                         </Box>
                         <Box sx={{ 
@@ -557,13 +641,20 @@ const SDGAnalysisPage = ({ isDarkMode = false }) => {
                   ))}
                 </Select>
               </FormControl>
+              {loading.documents && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+                  <CircularProgress size={20} />
+                </Box>
+              )}
             </Box>
 
             {/* Start Analysis Button */}
             <Button
               variant="contained"
               fullWidth
-              disabled={!jumlahTopik || !maxIterations || !selectedDokumen}
+              onClick={handleStartAnalysis}
+              disabled={!selectedDokumen || !jumlahTopik || !maxIterations || loading.analysis}
+              startIcon={loading.analysis ? <CircularProgress size={20} color="inherit" /> : <AnalyticsIcon />}
               sx={{
                 backgroundColor: '#6366f1',
                 color: 'white',
@@ -581,7 +672,7 @@ const SDGAnalysisPage = ({ isDarkMode = false }) => {
                 }
               }}
             >
-              Mulai Analisis
+              {loading.analysis ? 'Memproses...' : 'Mulai Analisis'}
             </Button>
           </Box>
         </Paper>
@@ -602,21 +693,47 @@ const SDGAnalysisPage = ({ isDarkMode = false }) => {
           </Typography>
           
           <Box sx={{ height: 350 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={topicData} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={borderColor} />
-                <XAxis 
-                  dataKey="name" 
-                  stroke={textColor}
-                  fontSize={12}
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                />
-                <YAxis stroke={textColor} fontSize={12} />
-                <Bar dataKey="value" fill="#6366f1" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {loading.analysis ? (
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                height: '100%'
+              }}>
+                <CircularProgress />
+                <Typography variant="body1" sx={{ ml: 2 }}>
+                  Sedang menganalisis dokumen...
+                </Typography>
+              </Box>
+            ) : topicData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={topicData} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={borderColor} />
+                  <XAxis 
+                    dataKey="topic" 
+                    stroke={textColor}
+                    fontSize={12}
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                  />
+                  <YAxis stroke={textColor} fontSize={12} />
+                  <Tooltip />
+                  <Bar dataKey="weight" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                height: '100%',
+                color: isDarkMode ? '#666' : '#999',
+                fontStyle: 'italic'
+              }}>
+                Tidak ada data distribusi topik. Silakan lakukan analisis terlebih dahulu.
+              </Box>
+            )}
           </Box>
         </Paper>
 
@@ -635,31 +752,54 @@ const SDGAnalysisPage = ({ isDarkMode = false }) => {
           </Typography>
           
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-            {sdgResults.map((item, index) => (
-              <Box key={index}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: textColor }}>
-                    {item.title}
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: textColor }}>
-                    {item.percentage}%
-                  </Typography>
-                </Box>
-                <LinearProgress
-                  variant="determinate"
-                  value={item.percentage}
-                  sx={{
-                    height: 8,
-                    borderRadius: 4,
-                    backgroundColor: isDarkMode ? '#333' : '#e9ecef',
-                    '& .MuiLinearProgress-bar': {
-                      backgroundColor: item.color,
-                      borderRadius: 4
-                    }
-                  }}
-                />
+            {loading.analysis ? (
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                py: 2
+              }}>
+                <CircularProgress size={20} />
+                <Typography variant="body2" sx={{ ml: 2 }}>
+                  Memproses hasil SDG mapping...
+                </Typography>
               </Box>
-            ))}
+            ) : sdgResults.length > 0 ? (
+              sdgResults.map((item, index) => (
+                <Box key={index}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: textColor }}>
+                      {item.sdg}: {item.description}
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: textColor }}>
+                      {item.score.toFixed(1)}%
+                    </Typography>
+                  </Box>
+                  <LinearProgress
+                    variant="determinate"
+                    value={item.score}
+                    sx={{
+                      height: 8,
+                      borderRadius: 4,
+                      backgroundColor: isDarkMode ? '#333' : '#e9ecef',
+                      '& .MuiLinearProgress-bar': {
+                        backgroundColor: item.color,
+                        borderRadius: 4
+                      }
+                    }}
+                  />
+                </Box>
+              ))
+            ) : (
+              <Box sx={{ 
+                textAlign: 'center',
+                color: isDarkMode ? '#666' : '#999',
+                fontStyle: 'italic',
+                py: 2
+              }}>
+                Tidak ada hasil SDG mapping. Silakan lakukan analisis terlebih dahulu.
+              </Box>
+            )}
           </Box>
         </Paper>
       </Box>
@@ -667,4 +807,4 @@ const SDGAnalysisPage = ({ isDarkMode = false }) => {
   );
 };
 
-export default SDGAnalysisPage;
+export default AnalisisContent;

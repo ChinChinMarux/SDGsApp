@@ -165,8 +165,8 @@ function MainDashboard() {
                         ? '2px solid rgba(102, 126, 234, 0.4) !important' 
                         : '2px solid rgba(102, 126, 234, 0.3) !important',
                       boxShadow: isDarkMode
-                        ? '0 2px 12px rgba(102, 126, 234, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important'
-                        : '0 2px 12px rgba(102, 126, 234, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.7) !important',
+                        ? '0 2px 12px rgba(255, 255, 255, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important'
+                        : '0 2px 12px rgba(230, 230, 230, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.7) !important',
                       transition: 'all 0.2s ease-in-out !important',
                       overflow: 'hidden !important',
                       '&:hover': {
