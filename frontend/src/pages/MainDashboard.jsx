@@ -3,12 +3,13 @@ import { useSwipeable } from 'react-swipeable';
 import {
   AppBar, Toolbar, Tabs, Tab, IconButton, Menu, MenuItem, Box, Typography,
   Container, useMediaQuery, Switch, Fade, Drawer, List, ListItem, ListItemIcon, 
-  ListItemText, ListItemButton
+  ListItemText, ListItemButton, Chip
 } from '@mui/material';
 import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
 import {
   DashboardCustomizeOutlined, ArticleOutlined, TrendingUp,
-  FileUploadOutlined, AccountCircle, LightMode, DarkMode, MenuOutlined
+  FileUploadOutlined, AccountCircle, LightMode, DarkMode, MenuOutlined,
+  SwipeRounded, KeyboardArrowLeft, KeyboardArrowRight
 } from '@mui/icons-material';
 
 import TargetIcon from '@mui/icons-material/TrackChanges';
@@ -86,24 +87,12 @@ const StyledDrawer = styled(Drawer)(({ theme, isDarkMode }) => ({
     transition: 'transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
     willChange: 'transform',
   },
-  // Custom transition for opening
-  '&.MuiModal-root': {
-    '&.MuiDrawer-root': {
-      '&.MuiDrawer-modal': {
-        '&.MuiDrawer-docked': {
-          '&.MuiDrawer-paper': {
-            transition: 'transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
-          }
-        }
-      }
-    }
-  }
 }));
 
 const StyledListItemButton = styled(ListItemButton)(({ theme, isActive, isDarkMode }) => ({
-  margin: '3px 10px', // Reduced margins
-  borderRadius: '10px', // Slightly smaller radius
-  padding: '10px 14px', // Reduced padding
+  margin: '3px 10px',
+  borderRadius: '10px',
+  padding: '10px 14px',
   transition: 'all 0.3s ease',
   backgroundColor: isActive 
     ? isDarkMode 
@@ -117,7 +106,7 @@ const StyledListItemButton = styled(ListItemButton)(({ theme, isActive, isDarkMo
     backgroundColor: isDarkMode 
       ? 'rgba(102, 126, 234, 0.1)' 
       : 'rgba(102, 126, 234, 0.05)',
-    transform: 'translateX(3px)', // Reduced movement
+    transform: 'translateX(3px)',
     boxShadow: isDarkMode 
       ? '0 3px 10px rgba(102, 126, 234, 0.2)' 
       : '0 3px 10px rgba(102, 126, 234, 0.1)',
@@ -126,6 +115,178 @@ const StyledListItemButton = styled(ListItemButton)(({ theme, isActive, isDarkMo
     transform: 'translateX(2px) scale(0.98)',
   }
 }));
+
+// Mobile Tab Indicator Component with Tab Names
+const MobileTabIndicator = ({ tabIndex, totalTabs, isDarkMode, tabsData, isSmallMobile }) => (
+  <Box sx={{ 
+    display: 'flex', 
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 1,
+    py: 1.5,
+    px: 2,
+    position: 'sticky',
+    top: 0,
+    zIndex: 10,
+    backgroundColor: isDarkMode ? 'rgba(15, 23, 42, 0.95)' : 'rgba(248, 250, 252, 0.95)',
+    backdropFilter: 'blur(10px)',
+    borderBottom: `1px solid ${isDarkMode ? 'rgba(102, 126, 234, 0.1)' : 'rgba(102, 126, 234, 0.08)'}`,
+    mb: 1
+  }}>
+    {/* Current Tab Name with Icon */}
+    <Box sx={{ 
+      display: 'flex', 
+      alignItems: 'center', 
+      gap: 1,
+      mb: 0.5
+    }}>
+      {React.createElement(tabsData[tabIndex].icon, {
+        sx: { 
+          fontSize: isSmallMobile ? 18 : 20, 
+          color: isDarkMode ? '#a5b4fc' : '#6366f1',
+        }
+      })}
+      <Typography sx={{
+        fontSize: isSmallMobile ? 14 : 16,
+        fontWeight: 600,
+        color: isDarkMode ? '#f1f5f9' : '#0f172a',
+        background: 'linear-gradient(135deg, #667eea, #a24b8bff)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+      }}>
+        {tabsData[tabIndex].label}
+      </Typography>
+    </Box>
+
+    {/* Navigation Indicators */}
+    <Box sx={{ 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center',
+      gap: 1,
+      width: '100%'
+    }}>
+      {/* Previous Tab Name */}
+      <Box sx={{ 
+        flex: 1, 
+        display: 'flex', 
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        gap: 0.5,
+        opacity: tabIndex > 0 ? 1 : 0,
+        transition: 'all 0.3s ease'
+      }}>
+        {tabIndex > 0 && (
+          <>
+            <KeyboardArrowLeft sx={{ 
+              fontSize: 16, 
+              color: isDarkMode ? '#94a3b8' : '#64748b',
+            }} />
+            <Typography sx={{
+              fontSize: isSmallMobile ? 11 : 12,
+              fontWeight: 500,
+              color: isDarkMode ? '#94a3b8' : '#64748b',
+              maxWidth: isSmallMobile ? '60px' : '80px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}>
+              {tabsData[tabIndex - 1].label}
+            </Typography>
+          </>
+        )}
+      </Box>
+
+      {/* Dot Indicators */}
+      <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+        {Array.from({ length: totalTabs }).map((_, index) => (
+          <Box
+            key={index}
+            sx={{
+              width: index === tabIndex ? 20 : 6,
+              height: 6,
+              borderRadius: '3px',
+              backgroundColor: index === tabIndex 
+                ? (isDarkMode ? '#a5b4fc' : '#6366f1')
+                : (isDarkMode ? 'rgba(148, 163, 184, 0.3)' : 'rgba(100, 116, 139, 0.3)'),
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}
+          />
+        ))}
+      </Box>
+
+      {/* Next Tab Name */}
+      <Box sx={{ 
+        flex: 1, 
+        display: 'flex', 
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        gap: 0.5,
+        opacity: tabIndex < totalTabs - 1 ? 1 : 0,
+        transition: 'all 0.3s ease'
+      }}>
+        {tabIndex < totalTabs - 1 && (
+          <>
+            <Typography sx={{
+              fontSize: isSmallMobile ? 11 : 12,
+              fontWeight: 500,
+              color: isDarkMode ? '#94a3b8' : '#64748b',
+              maxWidth: isSmallMobile ? '60px' : '80px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}>
+              {tabsData[tabIndex + 1].label}
+            </Typography>
+            <KeyboardArrowRight sx={{ 
+              fontSize: 16, 
+              color: isDarkMode ? '#94a3b8' : '#64748b',
+            }} />
+          </>
+        )}
+      </Box>
+    </Box>
+  </Box>
+);
+
+// Swipe Hint Component
+const SwipeHint = ({ isDarkMode, show }) => (
+  <AnimatePresence>
+    {show && (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Box sx={{
+          position: 'fixed',
+          bottom: 80,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 1000,
+          pointerEvents: 'none'
+        }}>
+          <Chip
+            icon={<SwipeRounded sx={{ fontSize: 16 }} />}
+            label="Swipe untuk navigasi"
+            size="small"
+            sx={{
+              backgroundColor: isDarkMode ? 'rgba(102, 126, 234, 0.15)' : 'rgba(102, 126, 234, 0.1)',
+              color: isDarkMode ? '#a5b4fc' : '#6366f1',
+              border: `1px solid ${isDarkMode ? 'rgba(102, 126, 234, 0.3)' : 'rgba(102, 126, 234, 0.2)'}`,
+              backdropFilter: 'blur(10px)',
+              fontSize: '0.75rem',
+              '& .MuiChip-icon': {
+                color: isDarkMode ? '#a5b4fc' : '#6366f1',
+              }
+            }}
+          />
+        </Box>
+      </motion.div>
+    )}
+  </AnimatePresence>
+);
 
 const tabsData = [
   { icon: DashboardCustomizeOutlined, label: 'Dashboard', content: DashboardContent },
@@ -140,10 +301,25 @@ function MainDashboard() {
   const [tabIndex, setTabIndex] = useState(0);
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [showSwipeHint, setShowSwipeHint] = useState(false);
+  const [hasSwipedBefore, setHasSwipedBefore] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    // Remove localStorage usage as per guidelines
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
+
+  // Show swipe hint on first mobile visit
+  useEffect(() => {
+    if (isMobile && !hasSwipedBefore) {
+      const timer = setTimeout(() => {
+        setShowSwipeHint(true);
+        const hideTimer = setTimeout(() => {
+          setShowSwipeHint(false);
+        }, 3000);
+        return () => clearTimeout(hideTimer);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isMobile, hasSwipedBefore]);
 
   const theme = useMemo(() => createTheme({
     palette: {
@@ -160,7 +336,6 @@ function MainDashboard() {
     typography: {
       fontFamily: '"Segoe UI", sans-serif',
     },
-    // Add responsive breakpoints
     breakpoints: {
       values: {
         xs: 0,
@@ -178,6 +353,35 @@ function MainDashboard() {
     setTabIndex(newValue);
     setMobileDrawerOpen(false);
   };
+
+  // Enhanced swipe handlers for mobile tab navigation
+  const handleSwipeLeft = () => {
+    if (isMobile && tabIndex < tabsData.length - 1) {
+      setTabIndex(prev => prev + 1);
+      setHasSwipedBefore(true);
+      setShowSwipeHint(false);
+    }
+  };
+
+  const handleSwipeRight = () => {
+    if (isMobile && tabIndex > 0) {
+      setTabIndex(prev => prev - 1);
+      setHasSwipedBefore(true);
+      setShowSwipeHint(false);
+    }
+  };
+
+  // Configure swipe handlers with enhanced settings
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: handleSwipeLeft,
+    onSwipedRight: handleSwipeRight,
+    preventDefaultTouchmoveEvent: true,
+    trackMouse: false, // Only track touch events on mobile
+    trackTouch: isMobile,
+    delta: 50, // Minimum distance for swipe
+    swipeDuration: 500, // Maximum duration for swipe
+    touchEventOptions: { passive: false }
+  });
   
   const toggleDarkMode = () => {
     setIsDarkMode(prev => !prev);
@@ -206,12 +410,10 @@ function MainDashboard() {
         if (shouldClose) {
           setMobileDrawerOpen(false);
         } else {
-          // Return to open position with spring animation
           x.set(0);
         }
       };
 
-      // Close drawer when clicking outside
       useEffect(() => {
         const handleClickOutside = (e) => {
           if (drawerRef.current && !drawerRef.current.contains(e.target)) {
@@ -226,10 +428,9 @@ function MainDashboard() {
           document.removeEventListener('touchstart', handleClickOutside);
         };
       }, []);
-
+      
       return (
         <>
-          {/* Overlay with fade animation */}
           <AnimatePresence>
             {mobileDrawerOpen && (
               <motion.div
@@ -252,7 +453,6 @@ function MainDashboard() {
             )}
           </AnimatePresence>
 
-          {/* Drawer with smooth sliding */}
           <motion.div
             ref={drawerRef}
             drag="x"
@@ -299,7 +499,6 @@ function MainDashboard() {
                 },
               }}
             >
-              {/* Drawer content remains the same */}
               <Box sx={{ 
                 display: 'flex', 
                 alignItems: 'center',
@@ -413,7 +612,6 @@ function MainDashboard() {
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
-        {/* Optimized AppBar for mobile */}
         <AppBar 
           position="sticky" 
           elevation={0} 
@@ -424,12 +622,11 @@ function MainDashboard() {
           }}
         >
           <Toolbar sx={{ 
-            minHeight: isMobile ? 52 : 56, // Smaller height on mobile
+            minHeight: isMobile ? 52 : 56,
             px: isMobile ? 1.5 : 2, 
             justifyContent: 'space-between' 
           }}>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              {/* Mobile Menu Button */}
               {isMobile && (
                 <IconButton
                   edge="start"
@@ -437,7 +634,7 @@ function MainDashboard() {
                   sx={{ 
                     mr: isMobile ? 1.5 : 2,
                     color: 'text.primary',
-                    p: 1, // Smaller padding
+                    p: 1,
                     '&:hover': {
                       backgroundColor: isDarkMode ? 'rgba(102, 126, 234, 0.1)' : 'rgba(102, 126, 234, 0.05)',
                     }
@@ -453,7 +650,7 @@ function MainDashboard() {
               <TargetIcon sx={{ 
                 fontSize: isMobile ? 22 : 26, 
                 color: '#a24b8bff', 
-                marginLeft: isMobile ? 5 : 1,
+                marginLeft: isMobile ? 6 : 1,
                 mr: isMobile ? 0.8 : 1 
               }} />
               <Typography sx={{
@@ -467,7 +664,6 @@ function MainDashboard() {
               </Typography>
             </Box>
 
-            {/* Desktop Tabs */}
             {!isMobile && (
               <Tabs value={tabIndex} onChange={handleTabChange} sx={{
                 minHeight: 48,
@@ -506,7 +702,6 @@ function MainDashboard() {
             )}
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: isMobile ? 1 : 1.5 }}>
-              {/* Desktop Theme Toggle */}
               {!isMobile && (
                 <>
                   <LightMode sx={{ fontSize: 20, color: isDarkMode ? 'text.secondary' : 'warning.main' }} />
@@ -520,7 +715,6 @@ function MainDashboard() {
                 appearance={{
                   baseTheme: isDarkMode ? "dark" : "light",
                   elements: {
-                    // Smaller avatar for mobile
                     userButtonAvatarBox: {
                       width: isMobile ? '30px !important' : '34px !important',
                       height: isMobile ? '30px !important' : '34px !important',
@@ -553,226 +747,273 @@ function MainDashboard() {
                       borderRadius: '50% !important',
                       objectFit: 'cover !important',
                     },
-                    
-                    // Responsive popover
-                    userButtonPopoverCard: {
-                      borderRadius: '16px',
-                      backdropFilter: 'blur(20px)',
-                      backgroundColor: isDarkMode 
-                        ? 'rgba(15, 23, 42, 0.95)' 
-                        : 'rgba(248, 250, 252, 0.95)',
-                      border: `1px solid ${isDarkMode ? 'rgba(102, 126, 234, 0.2)' : 'rgba(102, 126, 234, 0.15)'}`,
-                      boxShadow: isDarkMode
-                        ? '0 20px 40px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(102, 126, 234, 0.1)'
-                        : '0 20px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(102, 126, 234, 0.05)',
-                      padding: isMobile ? '16px' : '20px',
-                      minWidth: isMobile ? '250px' : '280px',
-                      animation: 'fadeInUp 0.3s ease-out',
-                    },
-                    
-                    profilePage: {
-                      backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc',
-                      color: isDarkMode ? '#f1f5f9' : '#0f172a',
-                    },
-                    
-                    profilePageHeader: {
-                      backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
-                      borderBottom: `1px solid ${isDarkMode ? '#334155' : '#e2e8f0'}`,
-                      color: isDarkMode ? '#f1f5f9' : '#0f172a',
-                    },
-                    
-                    profilePageContent: {
-                      backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc',
-                      color: isDarkMode ? '#f1f5f9' : '#0f172a',
-                    },
-                    
-                    formFieldInput: {
-                      backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
-                      borderColor: isDarkMode ? '#475569' : '#d1d5db',
-                      color: isDarkMode ? '#f1f5f9' : '#0f172a',
-                      '&:focus': {
-                        borderColor: isDarkMode ? '#6366f1' : '#6366f1',
-                        boxShadow: isDarkMode 
-                          ? '0 0 0 3px rgba(99, 102, 241, 0.1)' 
-                          : '0 0 0 3px rgba(99, 102, 241, 0.1)',
-                      }
-                    },
-                    
-                    formFieldLabel: {
-                      color: isDarkMode ? '#cbd5e1' : '#374151',
-                      fontWeight: 500,
-                    },
-                    
-                    profilePageButton: {
-                      backgroundColor: isDarkMode ? '#6366f1' : '#6366f1',
-                      color: '#ffffff',
-                      '&:hover': {
-                        backgroundColor: isDarkMode ? '#4f46e5' : '#4f46e5',
-                      }
-                    },
-                    
-                    card: {
-                      backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
-                      borderColor: isDarkMode ? '#334155' : '#e2e8f0',
-                      color: isDarkMode ? '#f1f5f9' : '#0f172a',
-                    },
-                    
-                    navbarContainer: {
-                      backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
-                      borderRight: `1px solid ${isDarkMode ? '#334155' : '#e2e8f0'}`,
-                    },
-                    
-                    navbarButton: {
-                      color: isDarkMode ? '#cbd5e1' : '#6b7280',
-                      '&:hover': {
-                        backgroundColor: isDarkMode ? '#334155' : '#f3f4f6',
+                  
+                  userButtonPopoverCard: {
+                        borderRadius: '16px',
+                        backdropFilter: 'blur(20px)',
+                        backgroundColor: isDarkMode 
+                          ? 'rgba(15, 23, 42, 0.95)' 
+                          : 'rgba(248, 250, 252, 0.95)',
+                        border: `1px solid ${isDarkMode ? 'rgba(102, 126, 234, 0.2)' : 'rgba(102, 126, 234, 0.15)'}`,
+                        boxShadow: isDarkMode
+                          ? '0 20px 40px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(102, 126, 234, 0.1)'
+                          : '0 20px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(102, 126, 234, 0.05)',
+                        padding: '20px',
+                        minWidth: '280px',
+                        animation: 'fadeInUp 0.3s ease-out',
+                      },
+                      
+                      // Profile page styling
+                      profilePage: {
+                        backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc',
                         color: isDarkMode ? '#f1f5f9' : '#0f172a',
                       },
-                      '&[data-active="true"]': {
+                      
+                      // Profile page header
+                      profilePageHeader: {
+                        backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
+                        borderBottom: `1px solid ${isDarkMode ? '#334155' : '#e2e8f0'}`,
+                        color: isDarkMode ? '#f1f5f9' : '#0f172a',
+                      },
+                      
+                      // Profile page content
+                      profilePageContent: {
+                        backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc',
+                        color: isDarkMode ? '#f1f5f9' : '#0f172a',
+                      },
+                      
+                      // Form fields in profile page
+                      formFieldInput: {
+                        backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
+                        borderColor: isDarkMode ? '#475569' : '#d1d5db',
+                        color: isDarkMode ? '#f1f5f9' : '#0f172a',
+                        '&:focus': {
+                          borderColor: isDarkMode ? '#6366f1' : '#6366f1',
+                          boxShadow: isDarkMode 
+                            ? '0 0 0 3px rgba(99, 102, 241, 0.1)' 
+                            : '0 0 0 3px rgba(99, 102, 241, 0.1)',
+                        }
+                      },
+                      
+                      // Form labels
+                      formFieldLabel: {
+                        color: isDarkMode ? '#cbd5e1' : '#374151',
+                        fontWeight: 500,
+                      },
+                      
+                      // Buttons in profile page
+                      profilePageButton: {
                         backgroundColor: isDarkMode ? '#6366f1' : '#6366f1',
                         color: '#ffffff',
-                      }
-                    },
-                    
-                    userButtonPopoverMain: {
-                      padding: '0 0 12px 0',
-                      borderBottom: `1px solid ${isDarkMode ? 'rgba(102, 126, 234, 0.1)' : 'rgba(102, 126, 234, 0.08)'}`,
-                    },
-                    
-                    userButtonPopoverActions: {
-                      padding: '12px 0 0 0',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '6px',
-                    },
-                    
-                    userButtonPopoverActionButton: {
-                      color: isDarkMode ? '#f1f5f9' : '#0f172a',
-                      backgroundColor: 'transparent',
-                      fontWeight: 500,
-                      fontSize: isMobile ? '0.8125rem' : '0.875rem',
-                      textTransform: 'none',
-                      padding: isMobile ? '8px 12px' : '10px 16px',
-                      borderRadius: '8px',
-                      border: 'none',
-                      transition: 'all 0.2s ease-in-out',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'flex-start',
-                      width: '100%',
-                      '&:hover': {
-                        backgroundColor: isDarkMode 
-                          ? 'rgba(102, 126, 234, 0.1)' 
-                          : 'rgba(102, 126, 234, 0.05)',
-                        transform: 'translateX(4px)',
-                        color: isDarkMode ? '#a5b4fc' : '#6366f1',
+                        '&:hover': {
+                          backgroundColor: isDarkMode ? '#4f46e5' : '#4f46e5',
+                        }
                       },
-                      '&:active': {
-                        transform: 'translateX(2px) scale(0.98)',
-                      }
+                      
+                      // Card containers in profile page
+                      card: {
+                        backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
+                        borderColor: isDarkMode ? '#334155' : '#e2e8f0',
+                        color: isDarkMode ? '#f1f5f9' : '#0f172a',
+                      },
+                      
+                      // Navigation sidebar
+                      navbarContainer: {
+                        backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
+                        borderRight: `1px solid ${isDarkMode ? '#334155' : '#e2e8f0'}`,
+                      },
+                      
+                      navbarButton: {
+                        color: isDarkMode ? '#cbd5e1' : '#6b7280',
+                        '&:hover': {
+                          backgroundColor: isDarkMode ? '#334155' : '#f3f4f6',
+                          color: isDarkMode ? '#f1f5f9' : '#0f172a',
+                        },
+                        '&[data-active="true"]': {
+                          backgroundColor: isDarkMode ? '#6366f1' : '#6366f1',
+                          color: '#ffffff',
+                        }
+                      },
+                      
+                      // User info section
+                      userButtonPopoverMain: {
+                        padding: '0 0 16px 0',
+                        borderBottom: `1px solid ${isDarkMode ? 'rgba(102, 126, 234, 0.1)' : 'rgba(102, 126, 234, 0.08)'}`,
+                      },
+                      
+                      // Action buttons container
+                      userButtonPopoverActions: {
+                        padding: '16px 0 0 0',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px',
+                      },
+                      
+                      // Individual action buttons
+                      userButtonPopoverActionButton: {
+                        color: isDarkMode ? '#f1f5f9' : '#0f172a',
+                        backgroundColor: 'transparent',
+                        fontWeight: 500,
+                        fontSize: '0.875rem',
+                        textTransform: 'none',
+                        padding: '10px 16px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        transition: 'all 0.2s ease-in-out',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'flex-start',
+                        width: '100%',
+                        '&:hover': {
+                          backgroundColor: isDarkMode 
+                            ? 'rgba(102, 126, 234, 0.1)' 
+                            : 'rgba(102, 126, 234, 0.05)',
+                          transform: 'translateX(4px)',
+                          color: isDarkMode ? '#a5b4fc' : '#6366f1',
+                        },
+                        '&:active': {
+                          transform: 'translateX(2px) scale(0.98)',
+                        }
+                      },
+                      
+                      // Sign out button specific styling
+                      userButtonPopoverActionButtonIcon: {
+                        marginRight: '12px',
+                        width: '16px',
+                        height: '16px',
+                        opacity: 0.7,
+                      },
+                      
+                      // Footer section
+                      userButtonPopoverFooter: {
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        paddingTop: '16px',
+                        marginTop: '16px',
+                        borderTop: `1px solid ${isDarkMode ? 'rgba(102, 126, 234, 0.1)' : 'rgba(102, 126, 234, 0.08)'}`,
+                      },
+                      
+                      // User preview section
+                      userPreview: {
+                        padding: '0',
+                        margin: '0',
+                      },
+                      
+                      userPreviewMainIdentifier: {
+                        color: isDarkMode ? '#f1f5f9' : '#0f172a',
+                        fontWeight: 600,
+                        fontSize: '1rem',
+                        marginBottom: '4px',
+                      },
+                      
+                      userPreviewSecondaryIdentifier: {
+                        color: isDarkMode ? '#94a3b8' : '#64748b',
+                        fontSize: '0.875rem',
+                        opacity: 0.8,
+                      },
+                      
+                      // Avatar in preview with !important
+                      avatarBox: {
+                        width: '44px !important',
+                        height: '44px !important',
+                        minWidth: '44px !important',
+                        minHeight: '44px !important',
+                        borderRadius: '50% !important', // Fully rounded
+                        aspectRatio: '1 !important',
+                        border: isDarkMode 
+                          ? '2px solid rgba(102, 126, 234, 0.3) !important' 
+                          : '2px solid rgba(102, 126, 234, 0.2) !important',
+                        marginRight: '12px',
+                        overflow: 'hidden !important',
+                      },
+                      
+                      // Avatar image in preview
+                      avatarImage: {
+                        width: '100% !important',
+                        height: '100% !important',
+                        borderRadius: '50% !important',
+                        objectFit: 'cover !important',
+                      },
                     },
-                    
-                    userButtonPopoverActionButtonIcon: {
-                      marginRight: isMobile ? '10px' : '12px',
-                      width: isMobile ? '14px' : '16px',
-                      height: isMobile ? '14px' : '16px',
-                      opacity: 0.7,
-                    },
-                    
-                    userButtonPopoverFooter: {
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      paddingTop: '12px',
-                      marginTop: '12px',
-                      borderTop: `1px solid ${isDarkMode ? 'rgba(102, 126, 234, 0.1)' : 'rgba(102, 126, 234, 0.08)'}`,
-                    },
-                    
-                    userPreview: {
-                      padding: '0',
-                      margin: '0',
-                    },
-                    
-                    userPreviewMainIdentifier: {
-                      color: isDarkMode ? '#f1f5f9' : '#0f172a',
-                      fontWeight: 600,
-                      fontSize: isMobile ? '0.875rem' : '1rem',
-                      marginBottom: '4px',
-                    },
-                    
-                    userPreviewSecondaryIdentifier: {
-                      color: isDarkMode ? '#94a3b8' : '#64748b',
-                      fontSize: isMobile ? '0.8125rem' : '0.875rem',
-                      opacity: 0.8,
-                    },
-                    
-                    avatarBox: {
-                      width: isMobile ? '36px !important' : '44px !important',
-                      height: isMobile ? '36px !important' : '44px !important',
-                      minWidth: isMobile ? '36px !important' : '44px !important',
-                      minHeight: isMobile ? '36px !important' : '44px !important',
-                      borderRadius: '50% !important',
-                      aspectRatio: '1 !important',
-                      border: isDarkMode 
-                        ? '2px solid rgba(102, 126, 234, 0.3) !important' 
-                        : '2px solid rgba(102, 126, 234, 0.2) !important',
-                      marginRight: isMobile ? '10px' : '12px',
-                      overflow: 'hidden !important',
-                    },
-                    
-                    avatarImage: {
-                      width: '100% !important',
-                      height: '100% !important',
-                      borderRadius: '50% !important',
-                      objectFit: 'cover !important',
-                    },
-                  },
-                  variables: {
-                    colorPrimary: isDarkMode ? '#6366f1' : '#6366f1',
-                    colorText: isDarkMode ? '#f1f5f9' : '#0f172a',
-                    colorTextSecondary: isDarkMode ? '#94a3b8' : '#64748b',
-                    colorBackground: isDarkMode ? '#0f172a' : '#f8fafc',
-                    colorInputBackground: isDarkMode ? '#1e293b' : '#ffffff',
-                    colorInputText: isDarkMode ? '#f1f5f9' : '#0f172a',
-                    colorNeutral: isDarkMode ? '#334155' : '#e2e8f0',
-                    colorShimmer: isDarkMode ? '#1e293b' : '#f1f5f9',
-                    borderRadius: '12px',
-                    fontFamily: '"Segoe UI", sans-serif',
-                    colorAlphaShade: isDarkMode ? 'rgba(15, 23, 42, 0.8)' : 'rgba(248, 250, 252, 0.8)',
-                    colorTextOnPrimaryBackground: '#ffffff',
-                    colorInputBorder: isDarkMode ? '#475569' : '#d1d5db',
-                  }
-                }}
-              />
-            </Box>
-          </Toolbar>
-        </AppBar>
+                    variables: {
+                      colorPrimary: isDarkMode ? '#6366f1' : '#6366f1',
+                      colorText: isDarkMode ? '#f1f5f9' : '#0f172a',
+                      colorTextSecondary: isDarkMode ? '#94a3b8' : '#64748b',
+                      colorBackground: isDarkMode ? '#0f172a' : '#f8fafc',
+                      colorInputBackground: isDarkMode ? '#1e293b' : '#ffffff',
+                      colorInputText: isDarkMode ? '#f1f5f9' : '#0f172a',
+                      colorNeutral: isDarkMode ? '#334155' : '#e2e8f0',
+                      colorShimmer: isDarkMode ? '#1e293b' : '#f1f5f9',
+                      borderRadius: '12px',
+                      fontFamily: '"Segoe UI", sans-serif',
+                      // Profile page specific variables
+                      colorAlphaShade: isDarkMode ? 'rgba(15, 23, 42, 0.8)' : 'rgba(248, 250, 252, 0.8)',
+                      colorTextOnPrimaryBackground: '#ffffff',
+                      colorInputBorder: isDarkMode ? '#475569' : '#d1d5db',
+                    }
+                  }}
+                />
+              </Box>
+            </Toolbar>
+          </AppBar>
 
-        {/* Mobile Drawer */}
         <MobileDrawer />
 
-        {/* Responsive Container */}
+        {/* Enhanced Mobile Content Container with Swipe */}
         <Container 
           component="main" 
           maxWidth="xl" 
           sx={{ 
             flex: 1, 
-            mt: isMobile ? 1.5 : 2, 
-            px: isMobile ? 1.5 : 2, 
-            pb: isMobile ? 3 : 4 
+            mt: isMobile ? 0 : 2, 
+            px: 0, 
+            pb: isMobile ? 3 : 4,
+            overflow: 'hidden'
           }}
+          {...(isMobile ? swipeHandlers : {})}
         >
-          <Fade in timeout={400}>
-            <Box>
-              <CurrentTabComponent 
-                isDarkMode={isDarkMode} 
-                currentTab={tabIndex} 
-                onTabChange={setTabIndex}
-                isMobile={isMobile}
-                isSmallMobile={isSmallMobile}
-              />
-            </Box>
-          </Fade>
+          {/* Mobile Tab Indicator */}
+          {isMobile && (
+            <MobileTabIndicator 
+              tabIndex={tabIndex} 
+              totalTabs={tabsData.length} 
+              isDarkMode={isDarkMode} 
+              tabsData={tabsData}
+              isSmallMobile={isSmallMobile}
+            />
+          )}
+          
+          {/* Swipe Hint */}
+          <SwipeHint isDarkMode={isDarkMode} show={showSwipeHint} />
+          
+          {/* Content with slide animation on mobile */}
+          <Box sx={{ px: isMobile ? 1.5 : 2 }}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={tabIndex}
+                initial={isMobile ? { opacity: 0, x: 20 } : { opacity: 0 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={isMobile ? { opacity: 0, x: -20 } : { opacity: 0 }}
+                transition={{
+                  duration: isMobile ? 0.3 : 0.4,
+                  ease: isMobile ? "easeOut" : "easeInOut"
+                }}
+              >
+                <Fade in timeout={400}>
+                  <Box>
+                    <CurrentTabComponent 
+                      isDarkMode={isDarkMode} 
+                      currentTab={tabIndex} 
+                      onTabChange={setTabIndex}
+                      isMobile={isMobile}
+                      isSmallMobile={isSmallMobile}
+                    />
+                  </Box>
+                </Fade>
+              </motion.div>
+            </AnimatePresence>
+          </Box>
         </Container>
       </Box>
     </ThemeProvider>

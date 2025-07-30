@@ -19,7 +19,8 @@ import {
   Description as DocumentIcon,
   Analytics as AnalyticsIcon,
   Clear as ClearIcon,
-  KeyboardArrowDown as ArrowDownIcon
+  KeyboardArrowDown as ArrowDownIcon,
+  RestartAltOutlined as RestartIcon
 } from '@mui/icons-material';
 import {
   BarChart,
@@ -284,11 +285,9 @@ const AnalisisContent = ({ isDarkMode = false }) => {
         {/* Header */}
         <Box sx={{ 
           display: 'flex',
-          flexDirection: isMobile ? 'column' : 'row',
-          justifyContent: 'space-between',
-          alignItems: isMobile ? 'flex-start' : 'center',
+          flexDirection: 'column',
           mb: isMobile ? 2 : 4,
-          gap: isMobile ? 1.5 : 0
+          gap: isMobile ? 1.5 : 2
         }}>
           <Typography variant="h5" sx={{ 
             fontWeight: 700,
@@ -297,26 +296,6 @@ const AnalisisContent = ({ isDarkMode = false }) => {
           }}>
             Topic Modeling & SDG Analysis
           </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AnalyticsIcon />}
-            onClick={handleReset}
-            sx={{
-              bgcolor: colors.secondary,
-              color: 'white',
-              textTransform: 'none',
-              fontWeight: 600,
-              px: 3,
-              py: 1,
-              borderRadius: '12px',
-              fontSize: isMobile ? '0.875rem' : '1rem',
-              '&:hover': {
-                bgcolor: colors.secondary
-              }
-            }}
-          >
-            Analisis Baru
-          </Button>
         </Box>
 
         {/* Error Alert */}
@@ -339,7 +318,7 @@ const AnalisisContent = ({ isDarkMode = false }) => {
             fontWeight: 600,
             fontSize: isMobile ? '1.125rem' : '1.25rem'
           }}>
-            Analysis Configuration
+            Konfigurasi Analisis
           </Typography>
 
           {/* Topic Count Select */}
@@ -390,32 +369,60 @@ const AnalisisContent = ({ isDarkMode = false }) => {
           })}
 
           {/* Start Button */}
-          <Button
-            fullWidth
-            variant="contained"
-            onClick={handleStartAnalysis}
-            disabled={!config.selectedDoc || !config.topicCount || !config.maxIterations || status.loading}
-            startIcon={status.loading ? (
-              <CircularProgress size={20} color="inherit" />
-            ) : (
-              <AnalyticsIcon />
-            )}
-            sx={{
-              bgcolor: colors.primary,
-              color: 'white',
-              py: isMobile ? 1.25 : 1.5,
-              borderRadius: '12px',
-              fontSize: isMobile ? '0.9375rem' : '1rem',
-              '&:hover': {
-                bgcolor: colors.primary
-              },
-              '&:disabled': {
-                bgcolor: isDarkMode ? 'grey.800' : 'grey.300'
-              }
-            }}
-          >
-            {status.loading ? 'Processing...' : 'Mulai Analisis'}
-          </Button>
+          <Box sx={{ 
+            display: 'flex',
+            flexDirection: 'column',
+            gap: isMobile ? 1.5 : 2,
+            mt: isMobile ? 2 : 3
+          }}>
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={handleStartAnalysis}
+              disabled={!config.selectedDoc || !config.topicCount || !config.maxIterations || status.loading}
+              startIcon={status.loading ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                <AnalyticsIcon />
+              )}
+              sx={{
+                bgcolor: colors.primary,
+                color: 'white',
+                py: isMobile ? 1.25 : 1.5,
+                borderRadius: '12px',
+                fontSize: isMobile ? '0.9375rem' : '1rem',
+                '&:hover': {
+                  bgcolor: colors.primary
+                },
+                '&:disabled': {
+                  bgcolor: isDarkMode ? 'grey.800' : 'grey.300'
+                }
+              }}
+            >
+              {status.loading ? 'Processing...' : 'Mulai Analisis'}
+            </Button>
+
+            <Button
+              fullWidth
+              variant="contained"
+              startIcon={<RestartIcon />}
+              onClick={handleReset}
+              sx={{
+                bgcolor: colors.secondary,
+                color: 'white',
+                textTransform: 'none',
+                fontWeight: 600,
+                py: isMobile ? 1.25 : 1.5,
+                borderRadius: '12px',
+                fontSize: isMobile ? '0.9375rem' : '1rem',
+                '&:hover': {
+                  bgcolor: colors.secondary
+                }
+              }}
+            >
+              Analisis Baru
+            </Button>
+          </Box>
         </Paper>
 
         {/* Results Section */}
