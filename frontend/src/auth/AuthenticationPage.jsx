@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SignIn, SignUp, SignedIn, SignedOut } from "@clerk/clerk-react";
 import {
@@ -112,33 +112,63 @@ const LogoCircle = styled(Box)(({ theme }) => ({
   }
 }));
 
-const SDGCircle = styled(Box)(({ theme }) => ({
-  width: 40,
-  height: 40,
-  borderRadius: "50%",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  color: "white",
-  fontSize: 14,
-  fontWeight: "bold",
-  boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-  cursor: "pointer",
-  transition: "all 0.3s ease",
-  "&:hover": {
-    transform: "translateY(-8px) scale(1.1)",
-    boxShadow: "0 8px 25px rgba(0,0,0,0.3)",
-    zIndex: 10,
-  },
-  [theme.breakpoints.down('md')]: {
-    width: 30,
-    height: 30,
-    fontSize: 12,
-    "&:hover": {
-      transform: "translateY(-4px) scale(1.05)",
-    },
-  }
-}));
+const SDGCircle = ({ color, icon, name, index }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [isClicked, setIsClicked] = useState(false);
+
+  const handleClick = () => {
+    if (isMobile) {
+      setIsClicked(!isClicked);
+    }
+  };
+
+  return (
+    <Tooltip 
+      title={`SDG ${index + 1}: ${name}`} 
+      placement="top" 
+      arrow
+      disableHoverListener={isMobile}
+      open={isMobile ? isClicked : undefined}
+      onClose={() => setIsClicked(false)}
+    >
+      <Box
+        sx={{
+          width: 40,
+          height: 40,
+          borderRadius: "50%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "white",
+          fontSize: 14,
+          fontWeight: "bold",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+          cursor: "pointer",
+          transition: "all 0.3s ease",
+          backgroundColor: color,
+          "&:hover": {
+            transform: !isMobile ? "translateY(-8px) scale(1.1)" : "none",
+            boxShadow: !isMobile ? "0 8px 25px rgba(0,0,0,0.3)" : "0 2px 8px rgba(0,0,0,0.2)",
+            zIndex: 10,
+          },
+          transform: isClicked ? "translateY(-4px) scale(1.05)" : "none",
+          [theme.breakpoints.down('md')]: {
+            width: 30,
+            height: 30,
+            fontSize: 12,
+            '& .MuiSvgIcon-root': {
+              fontSize: isMobile ? '18px' : '22px',
+            },
+          }
+        }}
+        onClick={handleClick}
+      >
+        {icon}
+      </Box>
+    </Tooltip>
+  );
+};
 
 const ClerkContainer = styled(Box)(({ theme }) => ({
   width: "100%",
@@ -392,13 +422,12 @@ function CustomAuthLayout() {
             >
               {sdgData.map((sdg, index) => (
                 <Grid item xs={isMobile ? 1.5 : 2} key={index}>
-                  <Tooltip title={`SDG ${index + 1}: ${sdg.name}`} placement="top" arrow>
-                    <SDGCircle sx={{ backgroundColor: sdg.color }}>
-                      {React.cloneElement(sdg.icon, { 
-                        fontSize: isMobile ? 'small' : 'medium' 
-                      })}
-                    </SDGCircle>
-                  </Tooltip>
+                  <SDGCircle 
+                    color={sdg.color} 
+                    icon={sdg.icon} 
+                    name={sdg.name}
+                    index={index}
+                  />
                 </Grid>
               ))}
             </Grid>
