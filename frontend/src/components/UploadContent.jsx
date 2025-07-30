@@ -61,7 +61,7 @@ const SDGUploadPage = ({ isDarkMode = false }) => {
     'application/json': '.json'
   };
 
-  const maxFileSize = 50 * 1024 * 1024; // 50MB
+  const maxFileSize = 2 * 50 * 1024 * 1024; // 100MB
 
   // Utility functions
   const formatFileSize = (bytes) => {
@@ -95,7 +95,7 @@ const SDGUploadPage = ({ isDarkMode = false }) => {
       return { valid: false, error: `File type ${file.type} not supported` };
     }
     if (file.size > maxFileSize) {
-      return { valid: false, error: `File size exceeds 50MB limit` };
+      return { valid: false, error: `File size exceeds 100MB limit` };
     }
     return { valid: true };
   };
@@ -443,36 +443,6 @@ const SDGUploadPage = ({ isDarkMode = false }) => {
         }}>
           Upload Dokumen/Korpus
         </Typography>
-
-        {/* Upload Dokumen Section */}
-        <Paper sx={{ 
-          backgroundColor: bgColor,
-          borderRadius: 3,
-          p: 3,
-          mb: 3,
-          border: `1px solid ${borderColor}`,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-        }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, color: textColor }}>
-              Upload Dokumen
-            </Typography>
-            <Chip 
-              label={`${documentFiles.length} files`} 
-              size="small" 
-              sx={{ backgroundColor: '#6366f1', color: 'white' }}
-            />
-          </Box>
-          
-          {renderUploadZone('document', dragOverDocument, documentTypes)}
-          
-          <Box sx={{ mt: 3 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, color: textColor, mb: 2 }}>
-              Uploaded Documents
-            </Typography>
-            {renderFileList(documentFiles, 'document')}
-          </Box>
-        </Paper>
 
         {/* Upload Korpus Section */}
         <Paper sx={{ 
