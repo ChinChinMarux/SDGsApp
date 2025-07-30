@@ -181,7 +181,7 @@ export default function Home() {
               <Button
                 variant="contained"
                 size="large"
-                onClick={() => navigate("/login")}
+                onClick={() => navigate("/sign-in")}
                 sx={{
                   bgcolor: "white",
                   color: theme.palette.primary.main,
@@ -205,7 +205,7 @@ export default function Home() {
               <Button
                 variant="outlined"
                 size="large"
-                onClick={() => navigate("/register")}
+                onClick={() => navigate("/sign-up")}
                 sx={{
                   borderColor: "white",
                   color: "white",

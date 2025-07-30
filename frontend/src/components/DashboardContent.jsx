@@ -1,26 +1,169 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
-  Tooltip,
-  LineChart,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Legend,
-  Line
+  Tooltip
 } from 'recharts';
-
+import { useTheme } from '@mui/material/styles';
 import ArticleIcon from '@mui/icons-material/Article';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import TargetIcon from '@mui/icons-material/TrackChanges';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 
-const DashboardContent = ({ isDarkMode }) => {
+const KnowledgeGraph = ({ isDarkMode }) => {
+  const theme = useTheme();
+  const svgRef = useRef();
+  const containerRef = useRef();
+  const [dimensions, setDimensions] = useState({ width: 0, height: 300 });
+  const [hoveredNode, setHoveredNode] = useState(null);
+
+  // Knowledge graph data - nodes and links representing SDG relationships
+  const nodes = [
+    { id: 'education', label: 'Education', x: 0, y: -80, size: 25, color: '#FF6B6B' },
+    { id: 'health', label: 'Health', x: 80, y: -60, size: 22, color: '#4ECDC4' },
+    { id: 'environment', label: 'Environment', x: 100, y: 50, size: 20, color: '#45B7D1' },
+    { id: 'economy', label: 'Economy', x: 0, y: 120, size: 18, color: '#96CEB4' },
+    { id: 'poverty', label: 'Poverty', x: -100, y: 100, size: 15, color: '#FFEAA7' },
+    { id: 'innovation', label: 'Innovation', x: 150, y: 100, size: 16, color: '#DDA0DD' },
+    { id: 'governance', label: 'Governance', x: 200, y: 20, size: 14, color: '#FFB6C1' },
+    { id: 'climate', label: 'Climate', x: 50, y: -40, size: 19, color: '#98FB98' }
+  ];
+
+  const links = [
+    { source: 'education', target: 'health', strength: 0.8 },
+    { source: 'education', target: 'poverty', strength: 0.9 },
+    { source: 'health', target: 'environment', strength: 0.7 },
+    { source: 'environment', target: 'climate', strength: 0.95 },
+    { source: 'economy', target: 'poverty', strength: 0.85 },
+    { source: 'economy', target: 'innovation', strength: 0.75 },
+    { source: 'innovation', target: 'governance', strength: 0.6 },
+    { source: 'governance', target: 'environment', strength: 0.65 },
+    { source: 'climate', target: 'economy', strength: 0.7 }
+  ];
+
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        const { width } = containerRef.current.getBoundingClientRect();
+        setDimensions({ width, height: 300 });
+      }
+    };
+
+    updateDimensions();
+    window.addEventListener('resize', updateDimensions);
+
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, []);
+
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg || dimensions.width === 0) return;
+
+    // Clear previous content
+    svg.innerHTML = '';
+
+    const centerX = dimensions.width / 2;
+    const centerY = dimensions.height / 2;
+    const scale = Math.min(dimensions.width, dimensions.height) / 300;
+
+    // Create links first (so they appear behind nodes)
+    links.forEach(link => {
+      const sourceNode = nodes.find(n => n.id === link.source);
+      const targetNode = nodes.find(n => n.id === link.target);
+      
+      if (sourceNode && targetNode) {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', sourceNode.x * scale + centerX);
+        line.setAttribute('y1', sourceNode.y * scale + centerY);
+        line.setAttribute('x2', targetNode.x * scale + centerX);
+        line.setAttribute('y2', targetNode.y * scale + centerY);
+        line.setAttribute('stroke', isDarkMode ? '#555' : '#ddd');
+        line.setAttribute('stroke-width', link.strength * 3);
+        line.setAttribute('opacity', '0.7');
+        svg.appendChild(line);
+      }
+    });
+
+    // Create nodes
+    nodes.forEach(node => {
+      const nodeX = node.x * scale + centerX;
+      const nodeY = node.y * scale + centerY;
+      const nodeSize = node.size * scale;
+      
+      // Node circle
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', nodeX);
+      circle.setAttribute('cy', nodeY);
+      circle.setAttribute('r', nodeSize);
+      circle.setAttribute('fill', node.color);
+      circle.setAttribute('stroke', isDarkMode ? '#333' : '#fff');
+      circle.setAttribute('stroke-width', '2');
+      circle.setAttribute('opacity', hoveredNode === node.id ? '1' : '0.9');
+      circle.style.cursor = 'pointer';
+      circle.style.transition = 'opacity 0.2s, r 0.2s';
+      
+      // Add hover effects
+      circle.addEventListener('mouseenter', () => {
+        circle.setAttribute('r', nodeSize + 3);
+        circle.setAttribute('opacity', '1');
+        setHoveredNode(node.id);
+      });
+      
+      circle.addEventListener('mouseleave', () => {
+        circle.setAttribute('r', nodeSize);
+        circle.setAttribute('opacity', '0.9');
+        setHoveredNode(null);
+      });
+      
+      svg.appendChild(circle);
+
+      // Node label
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', nodeX);
+      text.setAttribute('y', nodeY + nodeSize + 15);
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('fill', isDarkMode ? '#e0e0e0' : '#2c3e50');
+      text.setAttribute('font-size', '12');
+      text.setAttribute('font-weight', '500');
+      text.textContent = node.label;
+      svg.appendChild(text);
+    });
+
+  }, [dimensions, isDarkMode, hoveredNode]);
+
+  return (
+    <div ref={containerRef} style={{ height: 300, position: 'relative' }}>
+      <svg
+        ref={svgRef}
+        width="100%"
+        height="100%"
+        style={{ overflow: 'visible' }}
+      />
+      <div style={{
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        fontSize: '12px',
+        color: isDarkMode ? '#aaa' : '#666',
+        background: isDarkMode ? 'rgba(30, 30, 46, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+        padding: '4px 8px',
+        borderRadius: '4px',
+        border: `1px solid ${isDarkMode ? '#333' : '#e9ecef'}`
+      }}>
+        Interactive SDG Knowledge Map
+      </div>
+    </div>
+  );
+};
+
+const DashboardContent = ({ isDarkMode = false }) => {
+  const theme = useTheme();
+  
   const stats = [
     {
       label: 'Total Dokumen',
@@ -50,15 +193,6 @@ const DashboardContent = ({ isDarkMode }) => {
     { name: 'Environment', value: 20, color: '#45B7D1' },
     { name: 'Economy', value: 15, color: '#96CEB4' },
     { name: 'Other', value: 10, color: '#FFEAA7' }
-  ];
-
-  const weeklyData = [
-    { month: 'Jan', Analyses: 10, Documents: 45 },
-    { month: 'Feb', Analyses: 15, Documents: 52 },
-    { month: 'Mar', Analyses: 20, Documents: 48 },
-    { month: 'Apr', Analyses: 25, Documents: 61 },
-    { month: 'May', Analyses: 22, Documents: 55 },
-    { month: 'Jun', Analyses: 28, Documents: 67 }
   ];
 
   const recentAnalyses = [
@@ -148,20 +282,26 @@ const DashboardContent = ({ isDarkMode }) => {
           <div style={{ height: 300 }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={sdgsData} dataKey="value" cx="50%" cy="50%" outerRadius={130} labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                <Pie 
+                  data={sdgsData} 
+                  dataKey="value" 
+                  cx="50%" 
+                  cy="50%" 
+                  outerRadius={130} 
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                >
                   {sdgsData.map((entry, index) => (
                     <Cell key={index} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip content={<CustomTooltip isDarkMode={isDarkMode} />}
-                />
+                <Tooltip content={<CustomTooltip isDarkMode={isDarkMode} />} />
               </PieChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Weekly Activity */}
+        {/* Knowledge Graph */}
         <div style={{
           backgroundColor: bgColor,
           color: textColor,
@@ -169,23 +309,18 @@ const DashboardContent = ({ isDarkMode }) => {
           padding: '24px',
           border: `1px solid ${borderColor}`
         }}>
-          <h3 style={{ marginBottom: 20 }}>Weekly Activity</h3>
-          <div style={{ height: 300 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={weeklyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke={borderColor} />
-                <XAxis dataKey="month" stroke={textColor} fontSize={12} />
-                <YAxis stroke={textColor} fontSize={12} />
-                <Tooltip contentStyle={{
-                  backgroundColor: isDarkMode ? '#2c2c3c' : '#fff',
-                  border: `1px solid ${borderColor}`,
-                  borderRadius: 8
-                }} />
-                <Legend />
-                <Line type="monotone" dataKey="Documents" stroke="#4ECDC4" strokeWidth={3} dot={{ r: 4 }} />
-                <Line type="monotone" dataKey="Analyses" stroke="#45B7D1" strokeWidth={3} dot={{ r: 4 }} />
-              </LineChart>
-            </ResponsiveContainer>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+            <AccountTreeIcon style={{ color: '#6366f1' }} />
+            <h3>Knowledge Graph - SDG Interconnections</h3>
+          </div>
+          <KnowledgeGraph isDarkMode={isDarkMode} />
+          <div style={{ 
+            marginTop: '16px', 
+            fontSize: '14px', 
+            color: isDarkMode ? '#aaa' : '#666',
+            textAlign: 'center'
+          }}>
+            Visual representation of relationships between Sustainable Development Goals
           </div>
         </div>
       </div>
