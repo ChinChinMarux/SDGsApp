@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from models.sdg_reference_models import SDGReference
-from config import db
+from src.models.sdg_reference_models import SDGReference
+from src.config import db
 
 router = APIRouter()
 

@@ -3,7 +3,6 @@ from typing import List, Dict
 from datetime import datetime
 
 class Analysis(BaseModel):
-    analysis_id: str
     corpus_id: str
     parameter: dict
     result: str

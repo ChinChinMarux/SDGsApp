@@ -49,11 +49,11 @@ This project is collaboratively built by:
 
 ## 📚 Features
 
-- 📝 Upload `.csv` or `.xlsx` documents
+- 📝 Upload `.csv`, `.xlsx`, or `json` documents
 - 🧠 Topic modeling using LDA-based models
 - 🗂️ Automatic keyword extraction
 - 🎯 SDG classification based on keyword-to-SDG alignment
-- 📊 Dashboard with interactive charts & SDG mapping heatmap
+- 📊 Dashboard with interactive charts & knowledge graph
 - 🔍 Full document history & delete functionality
 
 ---
@@ -62,8 +62,8 @@ This project is collaboratively built by:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/sdg-mapping-tools.git
-cd sdg-mapping-tools
+git clone https://github.com/ChinChinMarux/SDGsApp.git
+cd SDGsAPP
 ```
 ### 2. Setup Backend
 ```bash

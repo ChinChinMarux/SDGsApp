@@ -1,4 +1,4 @@
-from config import db
+from ..config import db
 
 async def init_db():
     await db["Corpus"].create_index("user_id")

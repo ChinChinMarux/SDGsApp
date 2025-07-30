@@ -4,23 +4,16 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 
-requires-python = ">=3.13"
-dependencies = [
-    "clerk-sdk-python>=0.1.0",
-    "fastapi>=0.116.1",
-    "openai>=1.97.1",
-    "python-dotenv>=1.1.1",
-    "sqlalchemy>=2.0.41",
-
 requires-python = ">=3.11"
 dependencies = [
     "beanie>=2.0.0",
     "clerk-backend-api>=2.2.0",
-    "fastapi[all]>=0.115.12",
+    "fastapi>=0.116.1",
     "motor>=3.7.1",
     "pymongo[srv]>=4.13.2",
     "python-dotenv>=1.1.0",
+    "python-multipart>=0.0.20",
     "starlette>=0.47.2",
     "svix>=1.65.0",
-    "uvicorn>=0.34.2",
+    "uvicorn>=0.35.0",
 ]
