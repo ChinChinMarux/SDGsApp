@@ -8,7 +8,10 @@ import {
   Box,
   Grid,
   Tooltip,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
+
 import { styled } from "@mui/material/styles";
 import VolunteerActivismIcon from '@mui/icons-material/VolunteerActivism';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
@@ -37,6 +40,11 @@ const CustomContainer = styled(Box)(({ theme }) => ({
   alignItems: "center",
   justifyContent: "center",
   padding: theme.spacing(2),
+  [theme.breakpoints.down('md')]: {
+    padding: theme.spacing(1),
+    alignItems: "flex-start",
+    paddingTop: theme.spacing(2),
+  }
 }));
 
 const CustomPaper = styled(Paper)(({ theme }) => ({
@@ -47,6 +55,10 @@ const CustomPaper = styled(Paper)(({ theme }) => ({
   boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
   [theme.breakpoints.down('md')]: {
     flexDirection: 'column',
+    minHeight: 'auto',
+    width: '100%',
+    maxWidth: '100%',
+    borderRadius: 16,
   }
 }));
 
@@ -62,21 +74,24 @@ const LeftPanel = styled(Box)(({ theme }) => ({
   textAlign: "center",
   [theme.breakpoints.down('md')]: {
     width: "100%",
-    minHeight: 300,
-    padding: theme.spacing(4),
+    minHeight: 'auto',
+    padding: theme.spacing(3),
+    paddingBottom: theme.spacing(2),
   }
 }));
 
-const RightPanel = styled(Box)(({ theme }) => ({
-  flex: 1,
-  padding: theme.spacing(6),
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  [theme.breakpoints.down('md')]: {
-    padding: theme.spacing(4),
-  }
-}));
+// const RightPanel = styled(Box)(({ theme }) => ({
+//   flex: 1,
+//   padding: theme.spacing(6),
+//   display: "flex",
+//   alignItems: "center",
+//   justifyContent: "center",
+//   backgroundColor: "white",
+//   [theme.breakpoints.down('md')]: {
+//     padding: theme.spacing(3),
+//     paddingTop: theme.spacing(2),
+//   }
+// }));
 
 const LogoCircle = styled(Box)(({ theme }) => ({
   width: 80,
@@ -89,6 +104,12 @@ const LogoCircle = styled(Box)(({ theme }) => ({
   marginBottom: theme.spacing(3),
   fontSize: 36,
   fontWeight: "bold",
+  [theme.breakpoints.down('md')]: {
+    width: 60,
+    height: 60,
+    fontSize: 28,
+    marginBottom: theme.spacing(2),
+  }
 }));
 
 const SDGCircle = styled(Box)(({ theme }) => ({
@@ -109,6 +130,14 @@ const SDGCircle = styled(Box)(({ theme }) => ({
     boxShadow: "0 8px 25px rgba(0,0,0,0.3)",
     zIndex: 10,
   },
+  [theme.breakpoints.down('md')]: {
+    width: 30,
+    height: 30,
+    fontSize: 12,
+    "&:hover": {
+      transform: "translateY(-4px) scale(1.05)",
+    },
+  }
 }));
 
 const ClerkContainer = styled(Box)(({ theme }) => ({
@@ -119,18 +148,25 @@ const ClerkContainer = styled(Box)(({ theme }) => ({
   },
   "& .cl-card": {
     boxShadow: "none",
-    backgroundColor: "linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)",
+    backgroundColor: "#fafafa",
   },
   "& .cl-headerTitle": {
     fontSize: "2rem",
     fontWeight: "bold",
     color: "#333",
     marginBottom: theme.spacing(1),
+    [theme.breakpoints.down('md')]: {
+      fontSize: "1.5rem",
+    }
   },
   "& .cl-headerSubtitle": {
     color: "#666",
     fontSize: "1rem",
     marginBottom: theme.spacing(4),
+    [theme.breakpoints.down('md')]: {
+      fontSize: "0.9rem",
+      marginBottom: theme.spacing(3),
+    }
   },
   "& .cl-formFieldInput": {
     borderRadius: "8px",
@@ -144,6 +180,10 @@ const ClerkContainer = styled(Box)(({ theme }) => ({
       borderColor: "#667eea",
       boxShadow: "0 0 0 2px rgba(102, 126, 234, 0.1)",
     },
+    [theme.breakpoints.down('md')]: {
+      height: "44px",
+      fontSize: "16px", // Prevent zoom on iOS
+    }
   },
   "& .cl-formFieldLabel": {
     fontWeight: 500,
@@ -160,6 +200,10 @@ const ClerkContainer = styled(Box)(({ theme }) => ({
     "&:hover": {
       background: "linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)",
     },
+    [theme.breakpoints.down('md')]: {
+      height: "44px",
+      fontSize: "0.9rem",
+    }
   },
   "& .cl-socialButtonsBlockButton": {
     height: "48px",
@@ -172,6 +216,10 @@ const ClerkContainer = styled(Box)(({ theme }) => ({
       borderColor: "#667eea",
       backgroundColor: "#f8f9ff",
     },
+    [theme.breakpoints.down('md')]: {
+      height: "44px",
+      fontSize: "0.9rem",
+    }
   },
   "& .cl-footerActionLink": {
     color: "#667eea",
@@ -180,7 +228,7 @@ const ClerkContainer = styled(Box)(({ theme }) => ({
       textDecoration: "underline",
     },
   },
-  // PENTING: Jangan override loading states dan spinner dari Clerk
+  // Loading states tetap sama
   "& .cl-spinner": {
     display: "block !important",
     visibility: "visible !important",
@@ -191,14 +239,12 @@ const ClerkContainer = styled(Box)(({ theme }) => ({
     visibility: "visible !important",
     opacity: "1 !important",
   },
-  // Pastikan overlay loading terlihat
   "& .cl-modalBackdrop": {
     display: "flex !important",
     visibility: "visible !important",
     opacity: "1 !important",
     zIndex: "9999 !important",
   },
-  // Loading content harus terlihat
   "& .cl-loadingBox": {
     display: "flex !important",
     visibility: "visible !important",
@@ -243,11 +289,13 @@ export function AuthenticationPage() {
 }
 
 function CustomAuthLayout() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const currentPath = window.location.pathname;
   const isSignUp = currentPath.includes('/sign-up');
   const isCallback = currentPath.includes('/sso-callback');
 
-  // Jika ini adalah callback SSO, tampilkan loading saja
+  // Callback SSO loading tetap sama
   if (isCallback) {
     return (
       <CustomContainer>
@@ -256,7 +304,7 @@ function CustomAuthLayout() {
             textAlign: 'center',
             fontFamily: 'Segoe UI, sans-serif', 
             color: 'white', 
-            fontSize: '1.2rem',
+            fontSize: isMobile ? '1rem' : '1.2rem',
             fontWeight: 500,
             display: 'flex',
             flexDirection: 'column',
@@ -266,8 +314,8 @@ function CustomAuthLayout() {
         >
           <Box
             sx={{
-              width: 40,
-              height: 40,
+              width: isMobile ? 32 : 40,
+              height: isMobile ? 32 : 40,
               border: '4px solid rgba(255,255,255,0.3)',
               borderTop: '4px solid white',
               borderRadius: '50%',
@@ -284,7 +332,7 @@ function CustomAuthLayout() {
     );
   }
 
-  // Appearance configuration yang lebih aman untuk SSO
+  // Appearance configuration tetap sama
   const baseAppearance = {
     elements: {
       rootBox: "w-full",
@@ -298,52 +346,66 @@ function CustomAuthLayout() {
       footerActionLink: "text-blue-500 hover:underline",
       dividerLine: "bg-gray-300",
       dividerText: "text-gray-500",
-      // JANGAN override elemen loading ini
-      spinner: "", // Biarkan kosong agar menggunakan default
-      loading: "", // Biarkan kosong agar menggunakan default
-      modalBackdrop: "", // Biarkan kosong agar menggunakan default
-      loadingBox: "", // Biarkan kosong agar menggunakan default
+      spinner: "",
+      loading: "",
+      modalBackdrop: "",
+      loadingBox: "",
     }
   };
 
   return (
     <CustomContainer>
-      <Container maxWidth="lg">
+      <Container maxWidth="lg" sx={{ width: '850px' }}>
         <CustomPaper elevation={8}>
-          {/* LEFT PANEL */}
-          <LeftPanel sx={{ display: { xs: "none", md: "flex" } }}>
+          {/* LEFT PANEL - Selalu tampil di mobile (di atas) */}
+          <LeftPanel>
             <LogoCircle>
               S
             </LogoCircle>
-            <Typography variant="h4" fontWeight="bold" gutterBottom>
+            <Typography 
+              variant={isMobile ? "h5" : "h4"} 
+              fontWeight="bold" 
+              gutterBottom
+              sx={{ fontSize: isMobile ? '1.5rem' : '2.125rem' }}
+            >
               SDG Mapping Tools
             </Typography>
             <Typography 
               variant="body1" 
               sx={{ 
-                mb: 4, 
+                mb: isMobile ? 2 : 4, 
                 opacity: 0.8, 
-                maxWidth: 300, 
-                lineHeight: 1.6 
+                maxWidth: isMobile ? 280 : 300, 
+                lineHeight: 1.6,
+                fontSize: isMobile ? '0.9rem' : '1rem'
               }}
             >
-              Analisis dokumen dan pemetaan otomatis ke Sustainable Development Goals
+              Aplikasi pemetaan publikasi ke dalam topik SDGs dan visualisasi menggunakan Knowledge Graph.
             </Typography>
-            <Grid container spacing={1} sx={{ maxWidth: 280 }}>
+            <Grid 
+              container 
+              spacing={isMobile ? 0.5 : 1} 
+              sx={{ 
+                maxWidth: isMobile ? 240 : 280,
+                justifyContent: 'center'
+              }}
+            >
               {sdgData.map((sdg, index) => (
-                <Grid item xs={2} key={index}>
-                    <Tooltip title={`SDG ${index + 1}: ${sdg.name}`} placement="top" arrow>
+                <Grid item xs={isMobile ? 1.5 : 2} key={index}>
+                  <Tooltip title={`SDG ${index + 1}: ${sdg.name}`} placement="top" arrow>
                     <SDGCircle sx={{ backgroundColor: sdg.color }}>
-                        {sdg.icon}
+                      {React.cloneElement(sdg.icon, { 
+                        fontSize: isMobile ? 'small' : 'medium' 
+                      })}
                     </SDGCircle>
-                    </Tooltip>
+                  </Tooltip>
                 </Grid>
-                ))}
+              ))}
             </Grid>
           </LeftPanel>
 
-          {/* RIGHT PANEL */}
-          <RightPanel>
+          {/* RIGHT PANEL - Form login/register */}
+          {/* <RightPanel> */}
             <ClerkContainer>
               {isSignUp ? (
                 <SignUp 
@@ -361,7 +423,7 @@ function CustomAuthLayout() {
                 />
               )}
             </ClerkContainer>
-          </RightPanel>
+          {/* </RightPanel> */}
         </CustomPaper>
       </Container>
     </CustomContainer>
@@ -370,6 +432,8 @@ function CustomAuthLayout() {
 
 function RedirectToDashboard() {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
   useEffect(() => {
     navigate("/dashboard");
@@ -382,8 +446,9 @@ function RedirectToDashboard() {
           textAlign: 'center',
           fontFamily: 'Segoe UI, sans-serif', 
           color: 'white', 
-          fontSize: '1.2rem',
-          fontWeight: 500
+          fontSize: isMobile ? '1rem' : '1.2rem',
+          fontWeight: 500,
+          padding: 2
         }}
       >
         You are already signed in. Redirecting to the Dashboard page...
