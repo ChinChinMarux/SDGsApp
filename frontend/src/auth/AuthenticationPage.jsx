@@ -416,8 +416,9 @@ function CustomAuthLayout() {
               container 
               spacing={isMobile ? 0.5 : 1} 
               sx={{ 
-                maxWidth: isMobile ? 240 : 280,
-                justifyContent: 'center'
+                maxWidth: isMobile ? 240 : 300,
+                justifyContent: 'center',
+              padding: isMobile ? 2.5 : 1,
               }}
             >
               {sdgData.map((sdg, index) => (

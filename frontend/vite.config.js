@@ -5,9 +5,11 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: true,
+    host: '0.0.0.0',
+    port: 5173,
     allowedHosts: [
-      'rights-pricing-singles-grass.trycloudflare.com', // ← tambahkan host dari tunnel kamu
+      'rights-pricing-singles-grass.trycloudflare.com', 
+      'hopefully-enclosure-market-shorter.trycloudflare.com',// ← tambahkan host dari tunnel kamu
     ],
   },
 });
