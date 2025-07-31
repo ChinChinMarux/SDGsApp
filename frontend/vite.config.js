@@ -8,8 +8,7 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173,
     allowedHosts: [
-      'rights-pricing-singles-grass.trycloudflare.com', 
-      'hopefully-enclosure-market-shorter.trycloudflare.com',// ← tambahkan host dari tunnel kamu
+      'spatial-related-compete-material.trycloudflare.com',// ← tambahkan host dari tunnel kamu
     ],
   },
 });
