@@ -6,6 +6,7 @@ import KeamananContent from "./components/KeamananContent";
 import { AuthenticationPage } from "./auth/AuthenticationPage";
 import UploadContent from "./components/UploadContent";
 import NotFound from "./pages/NotFound";
+import GraphContent from "./components/GraphContent"; 
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 const frontendApi = import.meta.env.VITE_CLERK_FRONTEND_API;
@@ -62,6 +63,20 @@ function App() {
               <>
                 <SignedIn>
                   <UploadContent />
+                </SignedIn>
+                <SignedOut>
+                  <RedirectToSignIn redirectUrl="/sign-in" />
+                </SignedOut>
+              </>
+            }
+          />
+
+          <Route
+            path="/graph"
+            element={
+              <>
+                <SignedIn>
+                  <GraphContent />
                 </SignedIn>
                 <SignedOut>
                   <RedirectToSignIn redirectUrl="/sign-in" />

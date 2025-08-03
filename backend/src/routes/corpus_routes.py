@@ -3,7 +3,7 @@ from fastapi.responses import StreamingResponse
 from bson import ObjectId
 from src.models.corpus_models import Corpus
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorGridFSBucket
-from src.config import db
+from src.config.db import db
 from datetime import datetime
 import os
 import uuid
