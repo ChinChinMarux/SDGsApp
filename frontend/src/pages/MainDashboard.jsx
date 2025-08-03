@@ -16,9 +16,10 @@ import DocumentContent from '../components/DocumentContent';
 import AnalisisContent from '../components/AnalisisContent';
 import UploadContent from '../components/UploadContent';
 import ProfileContent from '../components/ProfileContent';
-import { UserButton } from '@clerk/clerk-react';
-import GraphContent from '../components/GraphContent';
 
+import GraphContent from '../components/GraphContent';
+import { UserButton, useUser } from '@clerk/clerk-react';
+import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
 
 
 const EnhancedSwitch = styled(Switch)(({ theme }) => ({
