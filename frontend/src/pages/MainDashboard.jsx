@@ -17,6 +17,8 @@ import AnalisisContent from '../components/AnalisisContent';
 import UploadContent from '../components/UploadContent';
 import ProfileContent from '../components/ProfileContent';
 import { UserButton } from '@clerk/clerk-react';
+import GraphContent from '../components/GraphContent';
+
 
 
 const EnhancedSwitch = styled(Switch)(({ theme }) => ({
@@ -50,6 +52,8 @@ const tabsData = [
   { icon: ArticleOutlined, label: 'Dokumen', content: DocumentContent },
   { icon: TrendingUp, label: 'Analisis', content: AnalisisContent },
   { icon: FileUploadOutlined, label: 'Upload', content: UploadContent },
+  { icon: TargetIcon, label: 'Visualisasi Graph', content: GraphContent },
+
 ];
 
 function MainDashboard() {
