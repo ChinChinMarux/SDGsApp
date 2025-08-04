@@ -21,6 +21,8 @@ import UploadContent from '../components/UploadContent';
 import ProfileContent from '../components/ProfileContent';
 import { UserButton, useUser } from '@clerk/clerk-react';
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
+import GraphContent from '../components/GraphContent';
+
 
 const EnhancedSwitch = styled(Switch)(({ theme }) => ({
   width: 50,
@@ -372,6 +374,8 @@ const tabsData = [
   { icon: ArticleOutlined, label: 'Dokumen', content: DocumentContent },
   { icon: TrendingUp, label: 'Analisis', content: AnalisisContent },
   { icon: FileUploadOutlined, label: 'Upload', content: UploadContent },
+  { icon: TargetIcon, label: 'Visualisasi Graph', content: GraphContent },
+
 ];
 
 function MainDashboard() {
