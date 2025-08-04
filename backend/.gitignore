@@ -13,3 +13,5 @@ settings.json
 
 *.uv.lock
 *.pyproject.toml
+database.db 
+uploads/*

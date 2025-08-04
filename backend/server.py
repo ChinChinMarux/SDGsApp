@@ -1,9 +1,6 @@
-from src import app
-import sys
-import os
+from src.main import app
 
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
-print(sys.path)
+__all__ = ["app"]
 
 if __name__ == "__main__":
     import uvicorn
