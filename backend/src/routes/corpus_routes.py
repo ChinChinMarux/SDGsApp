@@ -3,7 +3,7 @@ import pandas as pd
 from typing import List
 from sqlalchemy.orm import Session
 from ..config import models
-from ..config.db import (get_corpus_uploaded, insert_corpus, insert_file_record, upload_merged)
+from ..config.db import (get_corpus_uploaded, insert_corpus, insert_file_record, upload_merged, get_user)
 from ..utils import authhenticate_and_get_user_details
 from ..config.models import get_db
 from pathlib import Path
@@ -22,7 +22,8 @@ class RequestModel(BaseModel):
 
     class Config:
         orm_mode = True
-        
+
+
 @router.get("/c", response_model=List[RequestModel])
 async def get_all_corpus(request: Request, db: Session = Depends(get_db)):
   corpus=get_corpus_uploaded(db)

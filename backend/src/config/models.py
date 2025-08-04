@@ -10,7 +10,11 @@ class User(Base):
     __tablename__ = 'users'
     
     id=Column(String, primary_key=True)
-    name=Column(String, nullable=False, default="Researcher")
+    user_name=Column(String, nullable=False, default="Researcher")
+    email=Column(String, nullable=False)
+    first_name=Column(String, nullable=False)
+    last_name=Column(String, nullable=False)
+    organization=Column(String, nullable=False, default="No Organization")
     
     
 class FilesUploaded(Base):

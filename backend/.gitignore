@@ -15,3 +15,5 @@ settings.json
 *.pyproject.toml
 database.db 
 uploads/*
+alembic.ini
+alembic/*

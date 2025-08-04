@@ -2,9 +2,24 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from . import models
 
+def get_user(user_data: dict, db: Session):
+    user = db.query(models.User).filter(models.User.id == user_data["user_id"]).first()
+    if not user:
+        user = models.User(
+            id=user_data["user_id"],
+            user_name=user_data["user_name"],
+            email=user_data["email"],
+            first_name=user_data["first_name"],
+            last_name=user_data["last_name"],
+            organization=user_data["organization"]
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    return user
+
 def get_corpus_uploaded(db: Session):
     return db.query(models.Corpus).all()
-
 
 def insert_file_record(db: Session, user_id: str, file_name: str) -> int:
     file_record = models.FilesUploaded(
