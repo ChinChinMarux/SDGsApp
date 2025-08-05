@@ -119,7 +119,7 @@ async def get_graph_data():
         "nodes": [
             # Publications
             {"id": "doi:paper_001", "type": "Publication", "title": "Sustainable Agriculture Innovation"},
-            {"id": "doi:paper_002", "type": "Publication", "title": "Climate Change Policy in Urban Areas"},
+            {"id": "doi:paper_002", "type": "Publication", "title": "Climate Change Policy in Urban Areass"},
 
             # Authors
             {"id": "orcid:1234", "type": "Author", "full_name": "Dr. Aulia Rahman"},
