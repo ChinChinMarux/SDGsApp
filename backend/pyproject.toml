@@ -6,13 +6,17 @@ readme = "README.md"
 
 requires-python = ">=3.11"
 dependencies = [
+    "alembic>=1.16.4",
     "beanie>=2.0.0",
     "clerk-backend-api>=2.2.0",
     "fastapi>=0.116.1",
-    "motor>=3.7.1",
-    "pymongo[srv]>=4.13.2",
+    "openpyxl>=3.1.5",
+    "pandas>=2.3.1",
     "python-dotenv>=1.1.0",
+    "python-jose[cryptography]>=3.5.0",
     "python-multipart>=0.0.20",
+    "requests>=2.32.4",
+    "sqlalchemy>=2.0.42",
     "starlette>=0.47.2",
     "svix>=1.65.0",
     "uvicorn>=0.35.0",

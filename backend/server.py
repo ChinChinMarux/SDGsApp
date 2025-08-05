@@ -1,11 +1,8 @@
-from src import app
-import sys
-import os
+from src.main import app
 
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
-print(sys.path)
+__all__ = ["app"]
 
 if __name__ == "__main__":
     import uvicorn
     
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000)

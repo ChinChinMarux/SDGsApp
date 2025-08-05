@@ -1,82 +1,162 @@
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
-from fastapi.responses import StreamingResponse
-from bson import ObjectId
-from src.models.corpus_models import Corpus
-from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorGridFSBucket
-from src.config.db import db
+from fastapi import APIRouter, HTTPException, Request, Depends, UploadFile, File
+import pandas as pd
+from typing import List
+from sqlalchemy.orm import Session
+from ..config import models
+from ..config.db import (get_corpus_uploaded, insert_corpus, insert_file_record, upload_merged, get_user)
+from ..utils import authhenticate_and_get_user_details
+from ..config.models import get_db
+from pathlib import Path
+from pydantic import BaseModel
 from datetime import datetime
-import os
-import uuid
 
 router = APIRouter()
 
-UPLOAD_DIR = "../uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+class RequestModel(BaseModel):
+    id: int
+    title: str
+    abstract: str
+    uploaded_by: str
+    file_name: str
+    date_uploaded: datetime
 
-@router.post("/corpus/upload")
-async def upload_corpus_file(
-    file: UploadFile = File(...),
-    user_id: str = Form(...),
-    status: str = Form("uploaded")
-):
-    # Generate corpus_id
-    corpus_id = str(uuid.uuid4())
-    extension = file.filename.split(".")[-1]
-    filename = f"{corpus_id}.{extension}"
-    filepath = os.path.join(UPLOAD_DIR, filename)
-
-    # Simpan file ke disk
-    with open(filepath, "wb") as f:
-        f.write(await file.read())
-
-    # Simpan metadata ke DB
-    corpus = Corpus(
-        corpus_id=corpus_id,
-        user_id=user_id,
-        extension=extension,
-        title=file.filename,
-        status=status,
-        upload_date=datetime.utcnow()
-    )
-    corpus_dict = corpus.dict()
-    corpus_dict["filepath"] = filepath  # optional tambahan
-    await db["Corpus"].insert_one(corpus_dict)
-
-    return {"message": "File uploaded successfully", "corpus_id": corpus_id}
-
-@router.get("/corpus/{user_id}")
-async def get_user_corpus(user_id: str):
-    results = await db["Corpus"].find({"user_id": user_id}).to_list(100)
-    return results
-
-@router.get("/corpus/count")
-async def get_total_corpus(status: str = None):
-    query = {"status": status} if status else {}
-    count = await db["Corpus"].count_documents(query)
-    return {"count": count}
-
-@router.get("/corpus/list")
-async def get_all_corpus():
-    results = await db["Corpus"].find().sort("upload_date", -1).to_list(100)
-    
-@router.delete("/corpus/{corpus_id}")
-async def delete_corpus(corpus_id: str):
-    result = await db["Corpus"].delete_one({"corpus_id": corpus_id})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Corpus not found")
-    return {"message": "Corpus deleted"}
+    class Config:
+        orm_mode = True
 
 
-@router.get("/corpus/download/{corpus_id}")
-async def download_file(corpus_id: str):
-    fs = AsyncIOMotorGridFSBucket(db)
+@router.get("/c", response_model=List[RequestModel])
+async def get_all_corpus(request: Request, db: Session = Depends(get_db)):
+  corpus=get_corpus_uploaded(db)
+  
+  return corpus
+
+@router.post("/c/upload")
+async def upload_corpus(request: Request, file: UploadFile = File(...), db: Session = Depends(get_db)):
+    user_details = authhenticate_and_get_user_details(request)
+    user_id = user_details.get("user_id")
+
+    file_name = file.filename
+    file_size = 0
+    file_type = Path(file_name).suffix.lower()
+
+    if file_type not in [".csv", ".xlsx", ".json"]:
+        raise HTTPException(status_code=400, detail="Unsupported file type")
+
+    contents = await file.read()
+    file_size = len(contents)
+
     try:
-        stream = await fs.open_download_stream(ObjectId(corpus_id))
-    except Exception:
-        raise HTTPException(status_code=404, detail="File not found")
+        if file_type == ".csv":
+            df = pd.read_csv(pd.io.common.BytesIO(contents))
+        elif file_type == ".xlsx":
+            df = pd.read_excel(pd.io.common.BytesIO(contents))
+        elif file_type == ".json":
+            df = pd.read_json(pd.io.common.BytesIO(contents))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error reading file: {str(e)}")
 
-    return StreamingResponse(
-        stream,
-        media_type='application/octet-stream',
-        headers={"Content-Disposition": f"attachment; filename={stream.filename}"}
+    df.columns = df.columns.str.lower().str.strip()
+
+    required_columns = {"title", "abstract"}
+    if not required_columns.issubset(set(df.columns)):
+        raise HTTPException(
+            status_code=400,
+            detail=f"File must contain columns: {required_columns}, but got {df.columns.tolist()}"
+        )
+
+    # Simpan metadata file ke tabel FilesUploaded
+    file_id = insert_file_record(db=db, user_id=user_id, file_name=file_name)
+
+    # Ambil kombinasi title-abstract unik dari database
+    existing_pairs = set(
+        db.query(models.Corpus.title, models.Corpus.abstract).all()
     )
+
+    corpus_entries = []
+    merged_entries = []
+    duplicate_count = 0
+
+    for _, row in df.iterrows():
+        title = str(row["title"]).strip()
+        abstract = str(row["abstract"]).strip()
+
+        if not title or not abstract:
+            continue
+
+        if (title, abstract) in existing_pairs:
+            duplicate_count += 1
+            continue
+
+        new_corpus = insert_corpus(
+            db=db,
+            user_id=user_id,
+            file_id=file_id,
+            file_name=file_name,
+            file_size=file_size,
+            file_type=file_type,
+            title=title,
+            abstract=abstract,
+            date_uploaded=datetime.now(),
+            file_real=contents
+        )
+
+        new_merged = upload_merged(
+            db=db,
+            title=title,
+            abstract=abstract
+        )
+
+        corpus_entries.append(new_corpus)
+        merged_entries.append(new_merged)
+
+    if not corpus_entries:
+        return {
+            "message": "Upload skipped. All entries are duplicates.",
+            "duplicate_count": duplicate_count
+        }
+
+    db.add_all(corpus_entries + merged_entries)
+    db.commit()
+
+    return {
+        "message": "Upload successful",
+        "total_uploaded": len(corpus_entries),
+        "duplicate_skipped": duplicate_count,
+        "example_title": corpus_entries[0].title,
+        "example_abstract": corpus_entries[0].abstract
+    }
+
+
+
+  
+  
+
+# @router.post("/c")
+# async def upload_corpus(file: Corpus):
+#     if not file:
+#         return HTTPException(status_code=415, detail="Not supported")
+    
+#     try:
+      
+#         metadata = {
+#             "idFile":file.idFile,
+#           "nameFile": file.nameFile,
+#           "typeFile": file.typeFile,
+#           "sizeFile": file.sizeFile,
+#           "contentFile": file.contentFile,
+#           "statusFile": file.statusFile,
+#           "uploadDate": file.uploadDate,
+#         }
+#         db.corpus.insert_one(metadata)
+#         return {
+#           "message": "Upload successful", 
+#           "corpus_id": str(file.idFile),
+#           "corpus_name": str(file.nameFile),
+#           "corpus_type": str(file.typeFile),
+#           "corpus_size": int(file.sizeFile),
+#           "content": str(file.contentFile),
+#           "uploaded": str(file.uploadDate),
+#           "status": str(file.statusFile)
+#           }
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
