@@ -3,7 +3,12 @@ import pandas as pd
 from typing import List
 from sqlalchemy.orm import Session
 from ..config import models
-from ..config.db import (get_corpus_uploaded, insert_corpus, insert_file_record, upload_merged, get_user)
+from ..config.db import (
+    get_corpus_uploaded, 
+    insert_corpus, 
+    get_corpus_by, 
+    upload_merged, 
+    insert_file_record)
 from ..utils import authhenticate_and_get_user_details
 from ..config.models import get_db
 from pathlib import Path
@@ -12,23 +17,50 @@ from datetime import datetime
 
 router = APIRouter()
 
-class RequestModel(BaseModel):
-    id: int
-    title: str
-    abstract: str
-    uploaded_by: str
-    file_name: str
-    date_uploaded: datetime
+# class RequestModel(BaseModel):
+#     id: int
+#     title: str
+#     abstract: str
+#     uploaded_by: str
+#     file_name: str
+#     date_uploaded: datetime
+#     class Config:
+#         orm_mode = True
 
+class RequestModelByUser(BaseModel):
+    id: int
+    file_name: str
+    uploaded_by: str
+    file_size: int
+    file_type: str
+    date_uploaded: datetime
+    status: str
     class Config:
         orm_mode = True
 
+@router.delete
 
-@router.get("/c", response_model=List[RequestModel])
-async def get_all_corpus(request: Request, db: Session = Depends(get_db)):
-  corpus=get_corpus_uploaded(db)
+
+
+@router.get("/c/uploaded", response_model=List[RequestModelByUser])
+async def get_corpus_by_user(request: Request, db: Session = Depends(get_db)):
+    user_details = authhenticate_and_get_user_details(request)
+    user_id = user_details.get("user_id")
+    
+    corpus_by=get_corpus_by(db, user_id)
+    # if not corpus_by:
+    #     return {
+    #         "user_id": user_id,
+    #         "corpus_uploaded": "No Corpus Uploaded"
+    #     }
+    
+    return corpus_by or []
+    
+# @router.get("/c", response_model=List[RequestModel])
+# async def get_all_corpus(request: Request, db: Session = Depends(get_db)):
+#   corpus=get_corpus_uploaded(db)
   
-  return corpus
+#   return corpus
 
 @router.post("/c/upload")
 async def upload_corpus(request: Request, file: UploadFile = File(...), db: Session = Depends(get_db)):
@@ -38,7 +70,7 @@ async def upload_corpus(request: Request, file: UploadFile = File(...), db: Sess
     file_name = file.filename
     file_size = 0
     file_type = Path(file_name).suffix.lower()
-
+    status="completed"
     if file_type not in [".csv", ".xlsx", ".json"]:
         raise HTTPException(status_code=400, detail="Unsupported file type")
 
@@ -57,15 +89,24 @@ async def upload_corpus(request: Request, file: UploadFile = File(...), db: Sess
 
     df.columns = df.columns.str.lower().str.strip()
 
-    required_columns = {"title", "abstract"}
-    if not required_columns.issubset(set(df.columns)):
-        raise HTTPException(
-            status_code=400,
-            detail=f"File must contain columns: {required_columns}, but got {df.columns.tolist()}"
-        )
+    required_columns = [{"title", "titles"}, {"abstract", "abstracts"}]
+    def has_required_columns(columns):
+        return all(any(col in columns for col in group) for group in required_columns)
+    columns_in_file = set(df.columns)
+    if not has_required_columns(columns_in_file):
+        raise ValueError("Missing required columns")
+
 
     # Simpan metadata file ke tabel FilesUploaded
-    file_id = insert_file_record(db=db, user_id=user_id, file_name=file_name)
+    file_id = insert_file_record(
+        db=db, 
+        user_id=user_id, 
+        file_name=file_name,
+        file_size=file_size,
+        file_type=file_type,
+        date_uploaded=datetime.now(),
+        status=status
+        )
 
     # Ambil kombinasi title-abstract unik dari database
     existing_pairs = set(
@@ -102,12 +143,13 @@ async def upload_corpus(request: Request, file: UploadFile = File(...), db: Sess
 
         new_merged = upload_merged(
             db=db,
+            file_id=file_id,
             title=title,
             abstract=abstract
         )
 
         corpus_entries.append(new_corpus)
-        merged_entries.append(new_merged)
+        merged_entries.append(new_merged)  
 
     if not corpus_entries:
         return {

@@ -44,7 +44,7 @@ import DocumentContent from "../components/DocumentContent";
 import AnalisisContent from "../components/AnalisisContent";
 import UploadContent from "../components/UploadContent";
 import ProfileContent from "../components/ProfileContent";
-import AccountTreeIcon from '@mui/icons-material/AccountTree'
+import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import { UserButton, useUser } from "@clerk/clerk-react";
 import {
   motion,
@@ -109,27 +109,27 @@ const MobileEnhancedSwitch = styled(Switch)(({ theme }) => ({
 }));
 
 const StyledListItemButton = styled(ListItemButton)(
-  ({ theme, isActive, isDarkMode }) => ({
+  ({ theme, isactive, isdarkmode }) => ({
     margin: "3px 10px",
     borderRadius: "10px",
     padding: "10px 14px",
     transition: "all 0.3s ease",
-    backgroundColor: isActive
-      ? isDarkMode
+    backgroundColor: isactive
+      ? isdarkmode
         ? "rgba(102, 126, 234, 0.15)"
         : "rgba(102, 126, 234, 0.1)"
       : "transparent",
-    border: isActive
+    border: isactive
       ? `1px solid ${
-          isDarkMode ? "rgba(102, 126, 234, 0.3)" : "rgba(102, 126, 234, 0.2)"
+          isdarkmode ? "rgba(102, 126, 234, 0.3)" : "rgba(102, 126, 234, 0.2)"
         }`
       : "1px solid transparent",
     "&:hover": {
-      backgroundColor: isDarkMode
+      backgroundColor: isdarkmode
         ? "rgba(102, 126, 234, 0.1)"
         : "rgba(102, 126, 234, 0.05)",
       transform: "translateX(3px)",
-      boxShadow: isDarkMode
+      boxShadow: isdarkmode
         ? "0 3px 10px rgba(102, 126, 234, 0.2)"
         : "0 3px 10px rgba(102, 126, 234, 0.1)",
     },
@@ -143,7 +143,7 @@ const StyledListItemButton = styled(ListItemButton)(
 const MobileTabIndicator = ({
   tabIndex,
   totalTabs,
-  isDarkMode,
+  isdarkmode,
   tabsData,
   isSmallMobile,
 }) => (
@@ -158,12 +158,12 @@ const MobileTabIndicator = ({
       position: "sticky",
       top: 0,
       zIndex: 10,
-      backgroundColor: isDarkMode
+      backgroundColor: isdarkmode
         ? "rgba(15, 23, 42, 0.95)"
         : "rgba(248, 250, 252, 0.95)",
       backdropFilter: "blur(10px)",
       borderBottom: `1px solid ${
-        isDarkMode ? "rgba(102, 126, 234, 0.1)" : "rgba(102, 126, 234, 0.08)"
+        isdarkmode ? "rgba(102, 126, 234, 0.1)" : "rgba(102, 126, 234, 0.08)"
       }`,
       mb: 1,
     }}
@@ -180,14 +180,14 @@ const MobileTabIndicator = ({
       {React.createElement(tabsData[tabIndex].icon, {
         sx: {
           fontSize: isSmallMobile ? 18 : 20,
-          color: isDarkMode ? "#a5b4fc" : "#6366f1",
+          color: isdarkmode ? "#a5b4fc" : "#6366f1",
         },
       })}
       <Typography
         sx={{
           fontSize: isSmallMobile ? 14 : 16,
           fontWeight: 600,
-          color: isDarkMode ? "#f1f5f9" : "#0f172a",
+          color: isdarkmode ? "#f1f5f9" : "#0f172a",
           background: "linear-gradient(135deg, #667eea, #a24b8bff)",
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
@@ -224,14 +224,14 @@ const MobileTabIndicator = ({
             <KeyboardArrowLeft
               sx={{
                 fontSize: 16,
-                color: isDarkMode ? "#94a3b8" : "#64748b",
+                color: isdarkmode ? "#94a3b8" : "#64748b",
               }}
             />
             <Typography
               sx={{
                 fontSize: isSmallMobile ? 11 : 12,
                 fontWeight: 500,
-                color: isDarkMode ? "#94a3b8" : "#64748b",
+                color: isdarkmode ? "#94a3b8" : "#64748b",
                 maxWidth: isSmallMobile ? "60px" : "80px",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -255,10 +255,10 @@ const MobileTabIndicator = ({
               borderRadius: "3px",
               backgroundColor:
                 index === tabIndex
-                  ? isDarkMode
+                  ? isdarkmode
                     ? "#a5b4fc"
                     : "#6366f1"
-                  : isDarkMode
+                  : isdarkmode
                   ? "rgba(148, 163, 184, 0.3)"
                   : "rgba(100, 116, 139, 0.3)",
               transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
@@ -285,7 +285,7 @@ const MobileTabIndicator = ({
               sx={{
                 fontSize: isSmallMobile ? 11 : 12,
                 fontWeight: 500,
-                color: isDarkMode ? "#94a3b8" : "#64748b",
+                color: isdarkmode ? "#94a3b8" : "#64748b",
                 maxWidth: isSmallMobile ? "60px" : "80px",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -297,7 +297,7 @@ const MobileTabIndicator = ({
             <KeyboardArrowRight
               sx={{
                 fontSize: 16,
-                color: isDarkMode ? "#94a3b8" : "#64748b",
+                color: isdarkmode ? "#94a3b8" : "#64748b",
               }}
             />
           </>
@@ -308,7 +308,7 @@ const MobileTabIndicator = ({
 );
 
 // Swipe Hint Component
-const SwipeHint = ({ isDarkMode, show }) => (
+const SwipeHint = ({ isdarkmode, show }) => (
   <AnimatePresence>
     {show && (
       <motion.div
@@ -332,19 +332,19 @@ const SwipeHint = ({ isDarkMode, show }) => (
             label="Swipe untuk navigasi"
             size="small"
             sx={{
-              backgroundColor: isDarkMode
+              backgroundColor: isdarkmode
                 ? "rgba(102, 126, 234, 0.15)"
                 : "rgba(102, 126, 234, 0.1)",
-              color: isDarkMode ? "#a5b4fc" : "#6366f1",
+              color: isdarkmode ? "#a5b4fc" : "#6366f1",
               border: `1px solid ${
-                isDarkMode
+                isdarkmode
                   ? "rgba(102, 126, 234, 0.3)"
                   : "rgba(102, 126, 234, 0.2)"
               }`,
               backdropFilter: "blur(10px)",
               fontSize: "0.75rem",
               "& .MuiChip-icon": {
-                color: isDarkMode ? "#a5b4fc" : "#6366f1",
+                color: isdarkmode ? "#a5b4fc" : "#6366f1",
               },
             }}
           />
@@ -478,7 +478,7 @@ function MainDashboard() {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [showSwipeHint, setShowSwipeHint] = useState(false);
   const [hasSwipedBefore, setHasSwipedBefore] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(() => {
+  const [isdarkmode, setisdarkmode] = useState(() => {
     return window.matchMedia("(prefers-color-scheme: dark)").matches;
   });
 
@@ -500,14 +500,14 @@ function MainDashboard() {
     () =>
       createTheme({
         palette: {
-          mode: isDarkMode ? "dark" : "light",
+          mode: isdarkmode ? "dark" : "light",
           primary: { main: "#6366f1" },
           background: {
-            default: isDarkMode ? "#0f172a" : "#f8fafc",
-            paper: isDarkMode ? "#1e1e2e" : "#ffffff",
+            default: isdarkmode ? "#0f172a" : "#f8fafc",
+            paper: isdarkmode ? "#1e1e2e" : "#ffffff",
           },
           text: {
-            primary: isDarkMode ? "#f1f5f9" : "#0f172a",
+            primary: isdarkmode ? "#f1f5f9" : "#0f172a",
           },
         },
         typography: {
@@ -523,7 +523,7 @@ function MainDashboard() {
           },
         },
       }),
-    [isDarkMode]
+    [isdarkmode]
   );
 
   const handleTabChange = (_, newValue) => setTabIndex(newValue);
@@ -551,7 +551,7 @@ function MainDashboard() {
   };
 
   const toggleDarkMode = () => {
-    setIsDarkMode((prev) => !prev);
+    setisdarkmode((prev) => !prev);
   };
 
   const toggleMobileDrawer = () => {
@@ -570,13 +570,13 @@ function MainDashboard() {
         PaperProps={{
           sx: {
             width: 260,
-            backgroundColor: isDarkMode ? "#1e1e2e" : "#ffffff",
+            backgroundColor: isdarkmode ? "#1e1e2e" : "#ffffff",
             borderRight: `1px solid ${
-              isDarkMode
+              isdarkmode
                 ? "rgba(102, 126, 234, 0.2)"
                 : "rgba(102, 126, 234, 0.15)"
             }`,
-            boxShadow: isDarkMode
+            boxShadow: isdarkmode
               ? "4px 0 20px rgba(0, 0, 0, 0.5)"
               : "4px 0 20px rgba(0, 0, 0, 0.1)",
           },
@@ -623,13 +623,13 @@ function MainDashboard() {
                 <UserButton
                   afterSignOutUrl="/sign-in"
                   appearance={{
-                    baseTheme: isDarkMode ? "dark" : "light",
+                    baseTheme: isdarkmode ? "dark" : "light",
                     elements: {
                       userButtonAvatarBox: {
                         width: "40px !important",
                         height: "40px !important",
                         borderRadius: "50% !important",
-                        border: isDarkMode
+                        border: isdarkmode
                           ? "2px solid rgba(102, 126, 234, 0.4) !important"
                           : "2px solid rgba(102, 126, 234, 0.3) !important",
                       },
@@ -666,8 +666,8 @@ function MainDashboard() {
                 >
                   <ListItem disablePadding>
                     <StyledListItemButton
-                      isActive={tabIndex === index}
-                      isDarkMode={isDarkMode}
+                      isactive={tabIndex === index}
+                      isdarkmode={isdarkmode}
                       onClick={() => handleMobileTabChange(index)}
                     >
                       <ListItemIcon sx={{ minWidth: 36 }}>
@@ -676,10 +676,10 @@ function MainDashboard() {
                             fontSize: 20,
                             color:
                               tabIndex === index
-                                ? isDarkMode
+                                ? isdarkmode
                                   ? "#a5b4fc"
                                   : "#6366f1"
-                                : isDarkMode
+                                : isdarkmode
                                 ? "#94a3b8"
                                 : "#64748b",
                             transition: "color 0.3s ease",
@@ -694,10 +694,10 @@ function MainDashboard() {
                             fontWeight: tabIndex === index ? 600 : 500,
                             color:
                               tabIndex === index
-                                ? isDarkMode
+                                ? isdarkmode
                                   ? "#f1f5f9"
                                   : "#0f172a"
-                                : isDarkMode
+                                : isdarkmode
                                 ? "#cbd5e1"
                                 : "#64748b",
                             transition: "all 0.3s ease",
@@ -722,7 +722,7 @@ function MainDashboard() {
                   py: 1.5,
                   mt: 1.5,
                   borderTop: `1px solid ${
-                    isDarkMode
+                    isdarkmode
                       ? "rgba(102, 126, 234, 0.2)"
                       : "rgba(102, 126, 234, 0.15)"
                   }`,
@@ -735,7 +735,7 @@ function MainDashboard() {
                   sx={{
                     fontSize: 13,
                     fontWeight: 500,
-                    color: isDarkMode ? "#cbd5e1" : "#64748b",
+                    color: isdarkmode ? "#cbd5e1" : "#64748b",
                   }}
                 >
                   Dark Mode
@@ -744,17 +744,17 @@ function MainDashboard() {
                   <LightMode
                     sx={{
                       fontSize: 16,
-                      color: isDarkMode ? "text.secondary" : "warning.main",
+                      color: isdarkmode ? "text.secondary" : "warning.main",
                     }}
                   />
                   <MobileEnhancedSwitch
-                    checked={isDarkMode}
+                    checked={isdarkmode}
                     onChange={toggleDarkMode}
                   />
                   <DarkMode
                     sx={{
                       fontSize: 16,
-                      color: isDarkMode ? "info.main" : "text.secondary",
+                      color: isdarkmode ? "info.main" : "text.secondary",
                     }}
                   />
                 </Box>
@@ -802,7 +802,7 @@ function MainDashboard() {
                   mr: 1,
                   color: "text.primary",
                   "&:hover": {
-                    backgroundColor: isDarkMode
+                    backgroundColor: isdarkmode
                       ? "rgba(102, 126, 234, 0.1)"
                       : "rgba(102, 126, 234, 0.05)",
                   },
@@ -911,23 +911,23 @@ function MainDashboard() {
                   <LightMode
                     sx={{
                       fontSize: 20,
-                      color: isDarkMode ? "text.secondary" : "warning.main",
+                      color: isdarkmode ? "text.secondary" : "warning.main",
                     }}
                   />
                   <EnhancedSwitch
-                    checked={isDarkMode}
+                    checked={isdarkmode}
                     onChange={toggleDarkMode}
                   />
                   <DarkMode
                     sx={{
                       fontSize: 20,
-                      color: isDarkMode ? "info.main" : "text.secondary",
+                      color: isdarkmode ? "info.main" : "text.secondary",
                     }}
                   />
                   <UserButton
                     afterSignOutUrl="/sign-in"
                     appearance={{
-                      baseTheme: isDarkMode ? "dark" : "light",
+                      baseTheme: isdarkmode ? "dark" : "light",
                       elements: {
                         userButtonAvatarBox: {
                           width: "100% !important",
@@ -940,20 +940,20 @@ function MainDashboard() {
                             : "34px !important",
                           borderRadius: "50% !important",
                           aspectRatio: "1 !important",
-                          border: isDarkMode
+                          border: isdarkmode
                             ? "2px solid rgba(102, 126, 234, 0.4) !important"
                             : "2px solid rgba(102, 126, 234, 0.3) !important",
-                          boxShadow: isDarkMode
+                          boxShadow: isdarkmode
                             ? "0 2px 12px rgba(255, 255, 255, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important"
                             : "0 2px 12px rgba(230, 230, 230, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.7) !important",
                           transition: "all 0.2s ease-in-out !important",
                           overflow: "hidden !important",
                           "&:hover": {
                             transform: "scale(1.08) !important",
-                            borderColor: isDarkMode
+                            borderColor: isdarkmode
                               ? "rgba(102, 126, 234, 0.6) !important"
                               : "rgba(102, 126, 234, 0.5) !important",
-                            boxShadow: isDarkMode
+                            boxShadow: isdarkmode
                               ? "0 4px 20px rgba(102, 126, 234, 0.4), 0 0 0 4px rgba(102, 126, 234, 0.1) !important"
                               : "0 4px 20px rgba(102, 126, 234, 0.25), 0 0 0 4px rgba(102, 126, 234, 0.08) !important",
                           },
@@ -969,15 +969,15 @@ function MainDashboard() {
                         userButtonPopoverCard: {
                           borderRadius: "16px",
                           backdropFilter: "blur(20px)",
-                          backgroundColor: isDarkMode
+                          backgroundColor: isdarkmode
                             ? "rgba(15, 23, 42, 0.95)"
                             : "rgba(248, 250, 252, 0.95)",
                           border: `1px solid ${
-                            isDarkMode
+                            isdarkmode
                               ? "rgba(102, 126, 234, 0.2)"
                               : "rgba(102, 126, 234, 0.15)"
                           }`,
-                          boxShadow: isDarkMode
+                          boxShadow: isdarkmode
                             ? "0 20px 40px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(102, 126, 234, 0.1)"
                             : "0 20px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(102, 126, 234, 0.05)",
                           padding: "20px",
@@ -987,33 +987,33 @@ function MainDashboard() {
 
                         // Profile page styling
                         profilePage: {
-                          backgroundColor: isDarkMode ? "#0f172a" : "#f8fafc",
-                          color: isDarkMode ? "#f1f5f9" : "#0f172a",
+                          backgroundColor: isdarkmode ? "#0f172a" : "#f8fafc",
+                          color: isdarkmode ? "#f1f5f9" : "#0f172a",
                         },
 
                         // Profile page header
                         profilePageHeader: {
-                          backgroundColor: isDarkMode ? "#1e293b" : "#ffffff",
+                          backgroundColor: isdarkmode ? "#1e293b" : "#ffffff",
                           borderBottom: `1px solid ${
-                            isDarkMode ? "#334155" : "#e2e8f0"
+                            isdarkmode ? "#334155" : "#e2e8f0"
                           }`,
-                          color: isDarkMode ? "#f1f5f9" : "#0f172a",
+                          color: isdarkmode ? "#f1f5f9" : "#0f172a",
                         },
 
                         // Profile page content
                         profilePageContent: {
-                          backgroundColor: isDarkMode ? "#0f172a" : "#f8fafc",
-                          color: isDarkMode ? "#f1f5f9" : "#0f172a",
+                          backgroundColor: isdarkmode ? "#0f172a" : "#f8fafc",
+                          color: isdarkmode ? "#f1f5f9" : "#0f172a",
                         },
 
                         // Form fields in profile page
                         formFieldInput: {
-                          backgroundColor: isDarkMode ? "#1e293b" : "#ffffff",
-                          borderColor: isDarkMode ? "#475569" : "#d1d5db",
-                          color: isDarkMode ? "#f1f5f9" : "#0f172a",
+                          backgroundColor: isdarkmode ? "#1e293b" : "#ffffff",
+                          borderColor: isdarkmode ? "#475569" : "#d1d5db",
+                          color: isdarkmode ? "#f1f5f9" : "#0f172a",
                           "&:focus": {
-                            borderColor: isDarkMode ? "#6366f1" : "#6366f1",
-                            boxShadow: isDarkMode
+                            borderColor: isdarkmode ? "#6366f1" : "#6366f1",
+                            boxShadow: isdarkmode
                               ? "0 0 0 3px rgba(99, 102, 241, 0.1)"
                               : "0 0 0 3px rgba(99, 102, 241, 0.1)",
                           },
@@ -1021,42 +1021,42 @@ function MainDashboard() {
 
                         // Form labels
                         formFieldLabel: {
-                          color: isDarkMode ? "#cbd5e1" : "#374151",
+                          color: isdarkmode ? "#cbd5e1" : "#374151",
                           fontWeight: 500,
                         },
 
                         // Buttons in profile page
                         profilePageButton: {
-                          backgroundColor: isDarkMode ? "#6366f1" : "#6366f1",
+                          backgroundColor: isdarkmode ? "#6366f1" : "#6366f1",
                           color: "#ffffff",
                           "&:hover": {
-                            backgroundColor: isDarkMode ? "#4f46e5" : "#4f46e5",
+                            backgroundColor: isdarkmode ? "#4f46e5" : "#4f46e5",
                           },
                         },
 
                         // Card containers in profile page
                         card: {
-                          backgroundColor: isDarkMode ? "#1e293b" : "#ffffff",
-                          borderColor: isDarkMode ? "#334155" : "#e2e8f0",
-                          color: isDarkMode ? "#f1f5f9" : "#0f172a",
+                          backgroundColor: isdarkmode ? "#1e293b" : "#ffffff",
+                          borderColor: isdarkmode ? "#334155" : "#e2e8f0",
+                          color: isdarkmode ? "#f1f5f9" : "#0f172a",
                         },
 
                         // Navigation sidebar
                         navbarContainer: {
-                          backgroundColor: isDarkMode ? "#1e293b" : "#ffffff",
+                          backgroundColor: isdarkmode ? "#1e293b" : "#ffffff",
                           borderRight: `1px solid ${
-                            isDarkMode ? "#334155" : "#e2e8f0"
+                            isdarkmode ? "#334155" : "#e2e8f0"
                           }`,
                         },
 
                         navbarButton: {
-                          color: isDarkMode ? "#cbd5e1" : "#6b7280",
+                          color: isdarkmode ? "#cbd5e1" : "#6b7280",
                           "&:hover": {
-                            backgroundColor: isDarkMode ? "#334155" : "#f3f4f6",
-                            color: isDarkMode ? "#f1f5f9" : "#0f172a",
+                            backgroundColor: isdarkmode ? "#334155" : "#f3f4f6",
+                            color: isdarkmode ? "#f1f5f9" : "#0f172a",
                           },
                           '&[data-active="true"]': {
-                            backgroundColor: isDarkMode ? "#6366f1" : "#6366f1",
+                            backgroundColor: isdarkmode ? "#6366f1" : "#6366f1",
                             color: "#ffffff",
                           },
                         },
@@ -1065,7 +1065,7 @@ function MainDashboard() {
                         userButtonPopoverMain: {
                           padding: "0 0 16px 0",
                           borderBottom: `1px solid ${
-                            isDarkMode
+                            isdarkmode
                               ? "rgba(102, 126, 234, 0.1)"
                               : "rgba(102, 126, 234, 0.08)"
                           }`,
@@ -1081,7 +1081,7 @@ function MainDashboard() {
 
                         // Individual action buttons
                         userButtonPopoverActionButton: {
-                          color: isDarkMode ? "#f1f5f9" : "#0f172a",
+                          color: isdarkmode ? "#f1f5f9" : "#0f172a",
                           backgroundColor: "transparent",
                           fontWeight: 500,
                           fontSize: "0.875rem",
@@ -1095,11 +1095,11 @@ function MainDashboard() {
                           justifyContent: "flex-start",
                           width: "100%",
                           "&:hover": {
-                            backgroundColor: isDarkMode
+                            backgroundColor: isdarkmode
                               ? "rgba(102, 126, 234, 0.1)"
                               : "rgba(102, 126, 234, 0.05)",
                             transform: "translateX(4px)",
-                            color: isDarkMode ? "#a5b4fc" : "#6366f1",
+                            color: isdarkmode ? "#a5b4fc" : "#6366f1",
                           },
                           "&:active": {
                             transform: "translateX(2px) scale(0.98)",
@@ -1122,7 +1122,7 @@ function MainDashboard() {
                           paddingTop: "16px",
                           marginTop: "16px",
                           borderTop: `1px solid ${
-                            isDarkMode
+                            isdarkmode
                               ? "rgba(102, 126, 234, 0.1)"
                               : "rgba(102, 126, 234, 0.08)"
                           }`,
@@ -1135,14 +1135,14 @@ function MainDashboard() {
                         },
 
                         userPreviewMainIdentifier: {
-                          color: isDarkMode ? "#f1f5f9" : "#0f172a",
+                          color: isdarkmode ? "#f1f5f9" : "#0f172a",
                           fontWeight: 600,
                           fontSize: "1rem",
                           marginBottom: "4px",
                         },
 
                         userPreviewSecondaryIdentifier: {
-                          color: isDarkMode ? "#94a3b8" : "#64748b",
+                          color: isdarkmode ? "#94a3b8" : "#64748b",
                           fontSize: "0.875rem",
                           opacity: 0.8,
                         },
@@ -1155,7 +1155,7 @@ function MainDashboard() {
                           minHeight: "44px !important",
                           borderRadius: "50% !important", // Fully rounded
                           aspectRatio: "1 !important",
-                          border: isDarkMode
+                          border: isdarkmode
                             ? "2px solid rgba(102, 126, 234, 0.3) !important"
                             : "2px solid rgba(102, 126, 234, 0.2) !important",
                           marginRight: "12px",
@@ -1171,24 +1171,24 @@ function MainDashboard() {
                         },
                       },
                       variables: {
-                        colorPrimary: isDarkMode ? "#6366f1" : "#6366f1",
-                        colorText: isDarkMode ? "#f1f5f9" : "#0f172a",
-                        colorTextSecondary: isDarkMode ? "#94a3b8" : "#64748b",
-                        colorBackground: isDarkMode ? "#0f172a" : "#f8fafc",
-                        colorInputBackground: isDarkMode
+                        colorPrimary: isdarkmode ? "#6366f1" : "#6366f1",
+                        colorText: isdarkmode ? "#f1f5f9" : "#0f172a",
+                        colorTextSecondary: isdarkmode ? "#94a3b8" : "#64748b",
+                        colorBackground: isdarkmode ? "#0f172a" : "#f8fafc",
+                        colorInputBackground: isdarkmode
                           ? "#1e293b"
                           : "#ffffff",
-                        colorInputText: isDarkMode ? "#f1f5f9" : "#0f172a",
-                        colorNeutral: isDarkMode ? "#334155" : "#e2e8f0",
-                        colorShimmer: isDarkMode ? "#1e293b" : "#f1f5f9",
+                        colorInputText: isdarkmode ? "#f1f5f9" : "#0f172a",
+                        colorNeutral: isdarkmode ? "#334155" : "#e2e8f0",
+                        colorShimmer: isdarkmode ? "#1e293b" : "#f1f5f9",
                         borderRadius: "12px",
                         fontFamily: '"Segoe UI", sans-serif',
                         // Profile page specific variables
-                        colorAlphaShade: isDarkMode
+                        colorAlphaShade: isdarkmode
                           ? "rgba(15, 23, 42, 0.8)"
                           : "rgba(248, 250, 252, 0.8)",
                         colorTextOnPrimaryBackground: "#ffffff",
-                        colorInputBorder: isDarkMode ? "#475569" : "#d1d5db",
+                        colorInputBorder: isdarkmode ? "#475569" : "#d1d5db",
                       },
                     }}
                   />
@@ -1217,14 +1217,14 @@ function MainDashboard() {
             <MobileTabIndicator
               tabIndex={tabIndex}
               totalTabs={tabsData.length}
-              isDarkMode={isDarkMode}
+              isdarkmode={isdarkmode}
               tabsData={tabsData}
               isSmallMobile={isSmallMobile}
             />
           )}
 
           {/* Swipe Hint */}
-          <SwipeHint isDarkMode={isDarkMode} show={showSwipeHint} />
+          <SwipeHint isdarkmode={isdarkmode} show={showSwipeHint} />
 
           {/* Content with smart swipe detection */}
           <Box sx={{ px: isMobile ? 1.5 : 2 }}>
@@ -1247,7 +1247,7 @@ function MainDashboard() {
                   <Fade in timeout={400}>
                     <Box>
                       <CurrentTabComponent
-                        isDarkMode={isDarkMode}
+                        isdarkmode={isdarkmode}
                         currentTab={tabIndex}
                         onTabChange={setTabIndex}
                         isMobile={isMobile}

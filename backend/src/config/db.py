@@ -21,10 +21,22 @@ def get_user(user_data: dict, db: Session):
 def get_corpus_uploaded(db: Session):
     return db.query(models.Corpus).all()
 
-def insert_file_record(db: Session, user_id: str, file_name: str) -> int:
+def insert_file_record(
+    db: Session, 
+    user_id: str, 
+    file_name: str,
+    file_size: int,
+    file_type: str,
+    date_uploaded: datetime,
+    status:str
+    ) -> int:
     file_record = models.FilesUploaded(
         uploaded_by=user_id,
-        file_name=file_name
+        file_name=file_name,
+        file_size=file_size,
+        file_type=file_type,
+        date_uploaded=date_uploaded,
+        status=status
     )
     db.add(file_record)
     db.commit()
@@ -61,11 +73,13 @@ def insert_corpus(
 
 
 def upload_merged(
-    db:Session, 
+    db:Session,
+    file_id: int, 
     title:str, 
     abstract:str
 ):
     db_merged=models.Metadata(
+        file_id=file_id,
         title=title, 
         abstract=abstract)
     db.add(db_merged)
@@ -73,6 +87,14 @@ def upload_merged(
     db.refresh(db_merged)
     
     return db_merged
+
+def get_corpus_by(db: Session, uploaded_by: str):
+    return (db.query(models.FilesUploaded)
+            .filter(models.FilesUploaded.uploaded_by==uploaded_by)
+            .all()
+            )
+    
+
 # from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorGridFSBucket
 # from dotenv import load_dotenv
 # import os

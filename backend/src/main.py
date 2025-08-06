@@ -20,3 +20,4 @@ app.add_middleware(
 app.include_router(corpus_routes.router, prefix="/api")
 app.include_router(graph_routes.router, prefix="/api")
 app.include_router(users_routes.router, prefix="/api")
+app.include_router(analysis_routes.router, prefix="/api")

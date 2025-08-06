@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useTheme, useMediaQuery } from "@mui/material";
 import {
   Box,
@@ -35,7 +35,7 @@ import { useAuth } from "@clerk/clerk-react";
 import axios from "axios";
 
 const API_URL = "http://localhost:8000/api";
-const SDGUploadPage = ({ isDarkMode = false }) => {
+const SDGUploadPage = ({ isdarkmode = false }) => {
   const { getToken } = useAuth();
 
   const theme = useTheme();
@@ -50,6 +50,7 @@ const SDGUploadPage = ({ isDarkMode = false }) => {
     deleteDialog: { open: false, file: null, type: null },
     snackbar: { open: false, message: "", severity: "success" },
   });
+  const [uploadedFiles, setUploadedFiles] = useState([]);
   const [files, setFiles] = useState({ korpus: [] });
   const refs = {
     documentInput: useRef(null),
@@ -58,9 +59,9 @@ const SDGUploadPage = ({ isDarkMode = false }) => {
 
   // Theme colors
   const colors = {
-    bg: isDarkMode ? "#1e1e2e" : "#ffffff",
-    text: isDarkMode ? "#e0e0e0" : "#2c3e50",
-    border: isDarkMode ? "#333" : "#e9ecef",
+    bg: isdarkmode ? "#1e1e2e" : "#ffffff",
+    text: isdarkmode ? "#e0e0e0" : "#2c3e50",
+    border: isdarkmode ? "#333" : "#e9ecef",
     primary: "#6366f1",
     secondary: "#764ba2",
     error: "#e53e3e",
@@ -148,6 +149,36 @@ const SDGUploadPage = ({ isDarkMode = false }) => {
     }
   };
 
+  useEffect(() => {
+    const fetchUploadedFiles = async () => {
+      try {
+        const token = await getToken();
+        const res = await fetch(`${API_URL}/c/uploaded`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        const normalized = data.map((file) => ({
+          ...file,
+          name: file.file_name,
+          status: "completed",
+        }));
+        setUploadedFiles(normalized);
+
+        if (Array.isArray(data)) {
+          setUploadedFiles(data);
+        } else {
+          console.warn("Expected array, got:", data);
+          setUploadedFiles([]);
+        }
+      } catch (err) {
+        console.error("Gagal fetch uploaded files", err);
+        setUploadedFiles([]);
+      }
+    };
+
+    fetchUploadedFiles();
+  }, []);
+
   const UploadComponent = () => {
     const handleInputChange = (e) => {
       const fileList = Array.from(e.target.files);
@@ -174,8 +205,7 @@ const SDGUploadPage = ({ isDarkMode = false }) => {
   const handleFileUpload = async (fileList, type) => {
     try {
       const token = await getToken();
-      console.log("Token:", token); // Add this to verify token exists
-
+      console.log("Token:", token);
       if (!token) {
         showSnackbar("Authentication required. Please sign in.", "error");
         return;
@@ -184,12 +214,44 @@ const SDGUploadPage = ({ isDarkMode = false }) => {
       const allowedTypes = type === "document" ? documentTypes : korpusTypes;
       const allowedSize = maxFileSize;
 
+      const updateUploadStatus = (fileId, status) => {
+        setState((prev) => {
+          const currentList = Array.isArray(prev[type]) ? prev[type] : [];
+
+          return {
+            ...prev,
+            [type]: currentList.map((f) =>
+              f.id === fileId ? { ...f, status } : f
+            ),
+            uploadProgress:
+              status === "completed" || status === "failed"
+                ? Object.fromEntries(
+                    Object.entries(prev.uploadProgress || {}).filter(
+                      ([id]) => id !== fileId
+                    )
+                  )
+                : prev.uploadProgress,
+          };
+        });
+      };
+
       for (const file of fileList) {
         const validation = validateFile(file, allowedTypes, allowedSize);
         if (!validation.valid) {
           alert(validation.error);
           continue;
         }
+
+        const fileId = file.name + "-" + Date.now(); // unique ID
+
+        // Tambah file ke state (status "uploading")
+        setState((prev) => ({
+          ...prev,
+          [type]: [
+            ...(prev[type] || []),
+            { id: fileId, name: file.name, status: "uploading" },
+          ],
+        }));
 
         const formData = new FormData();
         formData.append("file", file);
@@ -209,59 +271,25 @@ const SDGUploadPage = ({ isDarkMode = false }) => {
               setState((prev) => ({
                 ...prev,
                 uploadProgress: {
-                  ...prev.uploadProgress,
-                  [file.name]: percent,
+                  ...(prev.uploadProgress || {}),
+                  [fileId]: percent,
                 },
               }));
             },
           });
+
+          updateUploadStatus(fileId, "completed");
           showSnackbar("File uploaded successfully!", "success");
           console.log("Upload berhasil:", res.data);
         } catch (err) {
+          updateUploadStatus(fileId, "failed");
           console.error("Upload gagal:", err.response?.data || err.message);
+          showSnackbar("Upload failed!", "error");
         }
       }
     } catch (err) {
       console.error("Error getting token:", err);
       showSnackbar("Authentication error. Please sign in again.", "error");
-    }
-  };
-
-  const simulateUpload = async (fileId, type) => {
-    const duration = 1500 + Math.random() * 2000; // 1.5-3.5 seconds
-    const steps = 20;
-
-    for (let i = 0; i <= steps; i++) {
-      await new Promise((resolve) => setTimeout(resolve, duration / steps));
-      const progress = Math.min(100, (i / steps) * 100);
-
-      setState((prev) => ({
-        ...prev,
-        uploadProgress: { ...prev.uploadProgress, [fileId]: progress },
-      }));
-
-      if (i === steps) {
-        // Mark upload as complete
-        setState((prev) => {
-          const currentList = Array.isArray(prev[type]) ? prev[type] : [];
-
-          return {
-            ...prev,
-            [type]: currentList.map((f) =>
-              f.id === fileId ? { ...f, status: "completed" } : f
-            ),
-            uploadProgress: Object.fromEntries(
-              Object.entries(prev.uploadProgress).filter(
-                ([id]) => id !== fileId
-              )
-            ),
-          };
-        });
-        console.log("Current type:", type);
-        console.log("Current prev[type]:", state[type]);
-
-        showSnackbar("File uploaded successfully!", "success");
-      }
     }
   };
 
@@ -284,7 +312,7 @@ const SDGUploadPage = ({ isDarkMode = false }) => {
             width: isMobile ? 36 : 44,
             height: isMobile ? 36 : 44,
             borderRadius: "10px",
-            bgcolor: isDarkMode ? "#2b2b3a" : "#f5f7fa",
+            bgcolor: isdarkmode ? "#2b2b3a" : "#f5f7fa",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -322,10 +350,10 @@ const SDGUploadPage = ({ isDarkMode = false }) => {
             <Typography
               sx={{
                 fontSize: isMobile ? "0.75rem" : "0.875rem",
-                color: isDarkMode ? "#aaa" : "#666",
+                color: isdarkmode ? "#aaa" : "#666",
               }}
             >
-              {formatFileSize(file.size)} • {file.uploadDate}
+              {formatFileSize(file.file_size)} • {file.date_uploaded}
             </Typography>
             {state.uploadProgress[file.id] !== undefined && (
               <Box sx={{ mt: 0.5 }}>
@@ -337,7 +365,7 @@ const SDGUploadPage = ({ isDarkMode = false }) => {
                 <Typography
                   sx={{
                     fontSize: "0.75rem",
-                    color: isDarkMode ? "#aaa" : "#666",
+                    color: isdarkmode ? "#aaa" : "#666",
                   }}
                 >
                   {Math.round(state.uploadProgress[file.id])}% uploaded
@@ -449,7 +477,7 @@ const SDGUploadPage = ({ isDarkMode = false }) => {
         <Typography
           sx={{
             fontSize: isMobile ? "0.75rem" : "0.875rem",
-            color: isDarkMode ? "#aaa" : "#666",
+            color: isdarkmode ? "#aaa" : "#666",
             mb: isMobile ? 2 : 3,
           }}
         >
@@ -498,7 +526,7 @@ const SDGUploadPage = ({ isDarkMode = false }) => {
     <Box
       sx={{
         minHeight: "100vh",
-        bgcolor: isDarkMode ? "background.default" : "grey.50",
+        bgcolor: isdarkmode ? "background.default" : "grey.50",
         pb: isMobile ? 2 : 0,
       }}
     >
@@ -586,7 +614,7 @@ const SDGUploadPage = ({ isDarkMode = false }) => {
               <Typography
                 sx={{
                   textAlign: "center",
-                  color: isDarkMode ? "#aaa" : "#666",
+                  color: isdarkmode ? "#aaa" : "#666",
                   fontSize: isMobile ? "0.875rem" : "1rem",
                   py: 2,
                 }}
@@ -595,112 +623,123 @@ const SDGUploadPage = ({ isDarkMode = false }) => {
               </Typography>
             ) : (
               <List sx={{ p: 0 }}>
-                {files.korpus.map((file) => (
-                  <ListItem
-                    key={file.idFile}
-                    sx={{
-                      border: `1px solid ${colors.border}`,
-                      borderRadius: "12px",
-                      mb: 1,
-                      p: isMobile ? 1 : 2,
-                      bgcolor: colors.bg,
-                      transition: "all 0.2s ease",
-                      "&:hover": { transform: "translateX(2px)" },
-                    }}
-                  >
-                    <ListItemIcon sx={{ minWidth: isMobile ? 44 : 56 }}>
-                      <Box
-                        sx={{
-                          width: isMobile ? 36 : 44,
-                          height: isMobile ? 36 : 44,
-                          borderRadius: "10px",
-                          bgcolor: isDarkMode ? "#2b2b3a" : "#f5f7fa",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        {getFileIcon({ name: file.nameFile })}
-                      </Box>
-                    </ListItemIcon>
-
-                    <ListItemText
-                      primary={
+                {Array.isArray(uploadedFiles) &&
+                  uploadedFiles.map((file) => (
+                    <ListItem
+                      key={file.id}
+                      file={file}
+                      type="korpus"
+                      sx={{
+                        border: `1px solid ${colors.border}`,
+                        borderRadius: "12px",
+                        mb: 1,
+                        p: isMobile ? 1 : 2,
+                        bgcolor: colors.bg,
+                        transition: "all 0.2s ease",
+                        "&:hover": { transform: "translateX(2px)" },
+                      }}
+                    >
+                      {file.file_name} | {file.status} | {file.date_uploaded}
+                      <ListItemIcon sx={{ minWidth: isMobile ? 44 : 56 }}>
                         <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                        >
-                          <Typography
-                            sx={{
-                              fontWeight: 600,
-                              fontSize: isMobile ? "0.875rem" : "1rem",
-                              color: colors.text,
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                              maxWidth: isMobile ? "150px" : "300px",
-                            }}
-                          >
-                            {file.nameFile}
-                          </Typography>
-                          <CheckCircleIcon
-                            sx={{
-                              color: colors.success,
-                              fontSize: isMobile ? 16 : 20,
-                            }}
-                          />
-                        </Box>
-                      }
-                      secondary={
-                        <Typography
                           sx={{
-                            fontSize: isMobile ? "0.75rem" : "0.875rem",
-                            color: isDarkMode ? "#aaa" : "#666",
+                            width: isMobile ? 36 : 44,
+                            height: isMobile ? 36 : 44,
+                            borderRadius: "10px",
+                            bgcolor: isdarkmode ? "#2b2b3a" : "#f5f7fa",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                           }}
                         >
-                          {formatFileSize(file.sizeFile)} •{" "}
-                          {new Date(file.uploadDate).toLocaleString()}
-                        </Typography>
-                      }
-                      sx={{ my: 0 }}
-                    />
+                          {getFileIcon({ name: file.nameFile })}
+                        </Box>
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
+                            <Typography
+                              sx={{
+                                fontWeight: 600,
+                                fontSize: isMobile ? "0.875rem" : "1rem",
+                                color: colors.text,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                maxWidth: isMobile ? "150px" : "300px",
+                              }}
+                            >
+                              {file.nameFile}
+                            </Typography>
+                            <CheckCircleIcon
+                              sx={{
+                                color: colors.success,
+                                fontSize: isMobile ? 16 : 20,
+                              }}
+                            />
+                          </Box>
+                        }
+                        secondary={
+                          <Typography
+                            sx={{
+                              fontSize: isMobile ? "0.75rem" : "0.875rem",
+                              color: isdarkmode ? "#aaa" : "#666",
+                            }}
+                          >
+                            {formatFileSize(file.file_size)} •{" "}
+                            {new Date(file.date_uploaded).toLocaleString()}
+                          </Typography>
+                        }
+                        sx={{ my: 0 }}
+                      />
+                      <ListItemSecondaryAction>
+                        <Box sx={{ display: "flex", gap: isMobile ? 0.5 : 1 }}>
+                          <IconButton
+                            size="small"
+                            onClick={() =>
+                              setState((prev) => ({
+                                ...prev,
+                                previewDialog: { open: true, file },
+                              }))
+                            }
+                            sx={{
+                              color: colors.primary,
+                              p: isMobile ? 0.5 : 1,
+                            }}
+                          >
+                            <ViewIcon
+                              fontSize={isMobile ? "small" : "medium"}
+                            />
+                          </IconButton>
 
-                    <ListItemSecondaryAction>
-                      <Box sx={{ display: "flex", gap: isMobile ? 0.5 : 1 }}>
-                        <IconButton
-                          size="small"
-                          onClick={() =>
-                            setState((prev) => ({
-                              ...prev,
-                              previewDialog: { open: true, file },
-                            }))
-                          }
-                          sx={{ color: colors.primary, p: isMobile ? 0.5 : 1 }}
-                        >
-                          <ViewIcon fontSize={isMobile ? "small" : "medium"} />
-                        </IconButton>
-
-                        <IconButton
-                          size="small"
-                          onClick={() =>
-                            setState((prev) => ({
-                              ...prev,
-                              deleteDialog: {
-                                open: true,
-                                file,
-                                type: "korpus",
-                              },
-                            }))
-                          }
-                          sx={{ color: colors.error, p: isMobile ? 0.5 : 1 }}
-                        >
-                          <DeleteIcon
-                            fontSize={isMobile ? "small" : "medium"}
-                          />
-                        </IconButton>
-                      </Box>
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                ))}
+                          <IconButton
+                            size="small"
+                            onClick={() =>
+                              setState((prev) => ({
+                                ...prev,
+                                deleteDialog: {
+                                  open: true,
+                                  file,
+                                  type: "korpus",
+                                },
+                              }))
+                            }
+                            sx={{ color: colors.error, p: isMobile ? 0.5 : 1 }}
+                          >
+                            <DeleteIcon
+                              fontSize={isMobile ? "small" : "medium"}
+                            />
+                          </IconButton>
+                        </Box>
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  ))}
               </List>
             )}
           </Box>
@@ -722,7 +761,7 @@ const SDGUploadPage = ({ isDarkMode = false }) => {
           <DialogTitle
             sx={{
               fontSize: isMobile ? "1.125rem" : "1.25rem",
-              bgcolor: isDarkMode ? "#2b2b3a" : "#f8fafc",
+              bgcolor: isdarkmode ? "#2b2b3a" : "#f8fafc",
             }}
           >
             File Preview
@@ -747,14 +786,14 @@ const SDGUploadPage = ({ isDarkMode = false }) => {
                     mb: 2,
                   }}
                 >
-                  {formatFileSize(state.previewDialog.file.sizeFile)} •{" "}
-                  {state.previewDialog.file.typeFile}
+                  {formatFileSize(state.previewDialog.file.file_size)} •{" "}
+                  {state.previewDialog.file.file_type}
                 </Typography>
                 <Box
                   sx={{
                     p: 3,
                     borderRadius: "8px",
-                    bgcolor: isDarkMode ? "#2b2b3a" : "#f5f7fa",
+                    bgcolor: isdarkmode ? "#2b2b3a" : "#f5f7fa",
                     textAlign: "center",
                   }}
                 >
@@ -770,7 +809,7 @@ const SDGUploadPage = ({ isDarkMode = false }) => {
           <DialogActions
             sx={{
               p: isMobile ? 2 : 3,
-              bgcolor: isDarkMode ? "#2b2b3a" : "#f8fafc",
+              bgcolor: isdarkmode ? "#2b2b3a" : "#f8fafc",
             }}
           >
             <Button

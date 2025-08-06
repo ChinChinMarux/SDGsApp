@@ -216,8 +216,8 @@
 
 // export default GraphContent;
 
-import React, { useEffect, useState, useRef } from 'react';
-import ForceGraph2D from 'react-force-graph-2d';
+import React, { useEffect, useState, useRef } from "react";
+import ForceGraph2D from "react-force-graph-2d";
 import {
   AccountTree as AccountTreeIcon,
   ZoomIn as ZoomInIcon,
@@ -226,16 +226,24 @@ import {
   Brightness4 as DarkModeIcon,
   Brightness7 as LightModeIcon,
   Settings as SettingsIcon,
-  KeyboardArrowDown as ArrowDownIcon
-} from '@mui/icons-material';
-import { useTheme, IconButton, Menu, MenuItem, ListItemIcon, ListItemText, Paper } from '@mui/material';
+  KeyboardArrowDown as ArrowDownIcon,
+} from "@mui/icons-material";
+import {
+  useTheme,
+  IconButton,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Paper,
+} from "@mui/material";
 
-const GraphContent = ({ toggleDarkMode, isDarkMode }) => {
+const GraphContent = ({ toggleDarkMode, isdarkmode }) => {
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
-    height: window.innerHeight
+    height: window.innerHeight,
   });
   const [anchorEl, setAnchorEl] = useState(null);
   const fgRef = useRef();
@@ -249,51 +257,56 @@ const GraphContent = ({ toggleDarkMode, isDarkMode }) => {
     const fetchGraphData = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/graph-data');
+        const response = await fetch("http://127.0.0.1:8000/api/graph-data");
         const data = await response.json();
-        
+
         // Process the data to match expected format
-        const processedNodes = data.nodes.map(node => {
-          const baseNode = { 
+        const processedNodes = data.nodes.map((node) => {
+          const baseNode = {
             id: node.id,
             type: node.type,
-            name: node.name || node.title || node.full_name || node.keywords?.join(', ') || 'Node'
+            name:
+              node.name ||
+              node.title ||
+              node.full_name ||
+              node.keywords?.join(", ") ||
+              "Node",
           };
-          
+
           // Add additional properties based on type
-          if (node.type === 'Publication') {
+          if (node.type === "Publication") {
             baseNode.title = node.title;
-          } else if (node.type === 'Author') {
+          } else if (node.type === "Author") {
             baseNode.full_name = node.full_name;
-          } else if (node.type === 'Institution') {
+          } else if (node.type === "Institution") {
             baseNode.name = node.name;
             baseNode.country = node.country;
-          } else if (node.type === 'Topic') {
+          } else if (node.type === "Topic") {
             baseNode.keywords = node.keywords;
-          } else if (node.type === 'SDG') {
+          } else if (node.type === "SDG") {
             baseNode.name = node.name;
             baseNode.tooltip = node.tooltip;
           }
-          
+
           return baseNode;
         });
 
-        const processedLinks = data.links.map(link => ({
+        const processedLinks = data.links.map((link) => ({
           source: link.source,
           target: link.target,
           type: link.type,
           topic_probability: link.topic_probability,
           mapping_weight: link.mapping_weight,
-          tooltip: link.tooltip || `${link.type}`
+          tooltip: link.tooltip || `${link.type}`,
         }));
 
         setGraphData({
           nodes: processedNodes,
-          links: processedLinks
+          links: processedLinks,
         });
         setIsLoading(false);
       } catch (error) {
-        console.error('Failed to fetch graph data:', error);
+        console.error("Failed to fetch graph data:", error);
         setIsLoading(false);
       }
     };
@@ -306,12 +319,12 @@ const GraphContent = ({ toggleDarkMode, isDarkMode }) => {
     const handleResize = () => {
       setWindowSize({
         width: window.innerWidth,
-        height: window.innerHeight
+        height: window.innerHeight,
       });
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   // Auto-zoom when data loads
@@ -336,9 +349,12 @@ const GraphContent = ({ toggleDarkMode, isDarkMode }) => {
 
   const handleCenter = () => {
     // Calculate center of all nodes
-    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    
-    graphData.nodes.forEach(node => {
+    let minX = Infinity,
+      maxX = -Infinity,
+      minY = Infinity,
+      maxY = -Infinity;
+
+    graphData.nodes.forEach((node) => {
       minX = Math.min(minX, node.x || 0);
       maxX = Math.max(maxX, node.x || 0);
       minY = Math.min(minY, node.y || 0);
@@ -368,49 +384,53 @@ const GraphContent = ({ toggleDarkMode, isDarkMode }) => {
   // Node styling functions
   const getNodeColor = (node) => {
     const colors = {
-      Publication: '#FFD700',
-      Author: '#00BFFF',
-      Institution: '#32CD32',
-      Topic: '#FF69B4',
-      SDG: '#FF4500'
+      Publication: "#FFD700",
+      Author: "#00BFFF",
+      Institution: "#32CD32",
+      Topic: "#FF69B4",
+      SDG: "#FF4500",
     };
-    return colors[node.type] || '#999';
+    return colors[node.type] || "#999";
   };
 
   const getNodeLabel = (node) => {
-    return node.name || 'Node';
+    return node.name || "Node";
   };
 
   // Theme colors
-  const cardBg = isDarkMode ? '#1e293b' : '#ffffff';
-  const borderColor = isDarkMode ? '#374151' : '#e5e7eb';
-  const textColor = isDarkMode ? '#f1f5f9' : '#111827';
-  const dropdownBg = isDarkMode ? '#1e293b' : '#ffffff';
-  const hoverBg = isDarkMode ? '#334155' : '#f8fafc';
-  const activeBg = isDarkMode ? '#475569' : '#e2e8f0';
+  const cardBg = isdarkmode ? "#1e293b" : "#ffffff";
+  const borderColor = isdarkmode ? "#374151" : "#e5e7eb";
+  const textColor = isdarkmode ? "#f1f5f9" : "#111827";
+  const dropdownBg = isdarkmode ? "#1e293b" : "#ffffff";
+  const hoverBg = isdarkmode ? "#334155" : "#f8fafc";
+  const activeBg = isdarkmode ? "#475569" : "#e2e8f0";
 
   if (isLoading) {
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '500px',
-        backgroundColor: cardBg,
-        borderRadius: '12px',
-        border: `1px solid ${borderColor}`,
-        color: textColor
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ 
-            width: '40px', 
-            height: '40px', 
-            border: `3px solid ${borderColor}`,
-            borderTop: `3px solid ${isDarkMode ? '#6366f1' : '#4f46e5'}`,
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto 16px'
-          }} />
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "500px",
+          backgroundColor: cardBg,
+          borderRadius: "12px",
+          border: `1px solid ${borderColor}`,
+          color: textColor,
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <div
+            style={{
+              width: "40px",
+              height: "40px",
+              border: `3px solid ${borderColor}`,
+              borderTop: `3px solid ${isdarkmode ? "#6366f1" : "#4f46e5"}`,
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+              margin: "0 auto 16px",
+            }}
+          />
           <div>Loading Knowledge Graph...</div>
         </div>
       </div>
@@ -418,11 +438,13 @@ const GraphContent = ({ toggleDarkMode, isDarkMode }) => {
   }
 
   return (
-    <div style={{ 
-      maxWidth: '1400px', 
-      margin: '0 auto', 
-      padding: isMobile ? '16px' : '24px'
-    }}>
+    <div
+      style={{
+        maxWidth: "1400px",
+        margin: "0 auto",
+        padding: isMobile ? "16px" : "24px",
+      }}
+    >
       <style>
         {`
           @keyframes spin {
@@ -437,43 +459,53 @@ const GraphContent = ({ toggleDarkMode, isDarkMode }) => {
             padding: 8px 16px;
             border-radius: 10px;
             border: 1px solid ${borderColor};
-            background: ${isDarkMode ? 
-              'linear-gradient(145deg, #1e293b 0%, #334155 100%)' : 
-              'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)'};
+            background: ${
+              isdarkmode
+                ? "linear-gradient(145deg, #1e293b 0%, #334155 100%)"
+                : "linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)"
+            };
             color: ${textColor};
             cursor: pointer;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: ${isDarkMode ? 
-              '0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)' : 
-              '0 2px 8px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8)'};
+            box-shadow: ${
+              isdarkmode
+                ? "0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
+                : "0 2px 8px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8)"
+            };
             gap: 8px;
             font-weight: 500;
             font-size: 14px;
-            min-width: ${isMobile ? '44px' : '120px'};
+            min-width: ${isMobile ? "44px" : "120px"};
             justify-content: center;
           }
           
           .dropdown-button:hover {
             transform: translateY(-1px);
-            box-shadow: ${isDarkMode ? 
-              '0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15)' : 
-              '0 4px 16px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9)'};
-            border-color: ${isDarkMode ? '#475569' : '#cbd5e1'};
-            background: ${isDarkMode ? 
-              'linear-gradient(145deg, #334155 0%, #475569 100%)' : 
-              'linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%)'};
+            box-shadow: ${
+              isdarkmode
+                ? "0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15)"
+                : "0 4px 16px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9)"
+            };
+            border-color: ${isdarkmode ? "#475569" : "#cbd5e1"};
+            background: ${
+              isdarkmode
+                ? "linear-gradient(145deg, #334155 0%, #475569 100%)"
+                : "linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%)"
+            };
           }
           
           .dropdown-button:active {
             transform: translateY(0px);
-            box-shadow: ${isDarkMode ? 
-              '0 1px 4px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.2)' : 
-              '0 1px 4px rgba(0, 0, 0, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.05)'};
+            box-shadow: ${
+              isdarkmode
+                ? "0 1px 4px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.2)"
+                : "0 1px 4px rgba(0, 0, 0, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.05)"
+            };
           }
           
           .dropdown-arrow {
             transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            ${open ? 'transform: rotate(180deg);' : ''}
+            ${open ? "transform: rotate(180deg);" : ""}
           }
           
           .menu-item {
@@ -492,7 +524,7 @@ const GraphContent = ({ toggleDarkMode, isDarkMode }) => {
           
           .menu-item:hover {
             background: ${hoverBg};
-            border-color: ${isDarkMode ? '#475569' : '#e2e8f0'};
+            border-color: ${isdarkmode ? "#475569" : "#e2e8f0"};
             transform: translateX(2px);
           }
           
@@ -508,17 +540,21 @@ const GraphContent = ({ toggleDarkMode, isDarkMode }) => {
             align-items: center;
             justify-content: center;
             border-radius: 6px;
-            background: ${isDarkMode ? 
-              'linear-gradient(145deg, #374151 0%, #4b5563 100%)' : 
-              'linear-gradient(145deg, #f1f5f9 0%, #e2e8f0 100%)'};
-            color: ${isDarkMode ? '#a5b4fc' : '#6366f1'};
+            background: ${
+              isdarkmode
+                ? "linear-gradient(145deg, #374151 0%, #4b5563 100%)"
+                : "linear-gradient(145deg, #f1f5f9 0%, #e2e8f0 100%)"
+            };
+            color: ${isdarkmode ? "#a5b4fc" : "#6366f1"};
             transition: all 0.15s ease;
           }
           
           .menu-item:hover .menu-icon {
-            background: ${isDarkMode ? 
-              'linear-gradient(145deg, #6366f1 0%, #8b5cf6 100%)' : 
-              'linear-gradient(145deg, #6366f1 0%, #8b5cf6 100%)'};
+            background: ${
+              isdarkmode
+                ? "linear-gradient(145deg, #6366f1 0%, #8b5cf6 100%)"
+                : "linear-gradient(145deg, #6366f1 0%, #8b5cf6 100%)"
+            };
             color: white;
             transform: scale(1.1);
           }
@@ -526,96 +562,108 @@ const GraphContent = ({ toggleDarkMode, isDarkMode }) => {
       </style>
 
       {/* Header */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: isMobile ? '16px' : '24px'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <AccountTreeIcon style={{ 
-            color: isDarkMode ? '#818cf8' : '#6366f1',
-            fontSize: isMobile ? '24px' : '28px'
-          }} />
-          <h2 style={{
-            margin: 0,
-            fontSize: isMobile ? '20px' : '24px',
-            fontWeight: '700',
-            color: textColor
-          }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: isMobile ? "16px" : "24px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <AccountTreeIcon
+            style={{
+              color: isdarkmode ? "#818cf8" : "#6366f1",
+              fontSize: isMobile ? "24px" : "28px",
+            }}
+          />
+          <h2
+            style={{
+              margin: 0,
+              fontSize: isMobile ? "20px" : "24px",
+              fontWeight: "700",
+              color: textColor,
+            }}
+          >
             Knowledge Graph
           </h2>
         </div>
 
         {/* Enhanced Controls */}
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>          
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
           <div>
             <div
               className="dropdown-button"
               onClick={handleClick}
-              aria-controls={open ? 'graph-controls-menu' : undefined}
+              aria-controls={open ? "graph-controls-menu" : undefined}
               aria-haspopup="true"
-              aria-expanded={open ? 'true' : undefined}
+              aria-expanded={open ? "true" : undefined}
             >
-              <SettingsIcon style={{ fontSize: '18px' }} />
+              <SettingsIcon style={{ fontSize: "18px" }} />
               {!isMobile && <span>Controls</span>}
-              <ArrowDownIcon 
-                className="dropdown-arrow" 
-                style={{ fontSize: '16px' }} 
+              <ArrowDownIcon
+                className="dropdown-arrow"
+                style={{ fontSize: "16px" }}
               />
             </div>
-            
+
             <Menu
               id="graph-controls-menu"
               anchorEl={anchorEl}
               open={open}
               onClose={handleClose}
               MenuListProps={{
-                'aria-labelledby': 'graph-controls-button',
-                style: { padding: '8px 0' }
+                "aria-labelledby": "graph-controls-button",
+                style: { padding: "8px 0" },
               }}
               PaperProps={{
                 style: {
                   backgroundColor: dropdownBg,
                   border: `1px solid ${borderColor}`,
-                  borderRadius: '12px',
-                  minWidth: '200px',
-                  boxShadow: isDarkMode ? 
-                    '0 10px 38px rgba(0, 0, 0, 0.35), 0 10px 20px rgba(0, 0, 0, 0.2)' : 
-                    '0 10px 38px rgba(22, 23, 24, 0.1), 0 10px 20px rgba(22, 23, 24, 0.05)',
-                  backdropFilter: 'blur(8px)',
-                  overflow: 'visible'
-                }
+                  borderRadius: "12px",
+                  minWidth: "200px",
+                  boxShadow: isdarkmode
+                    ? "0 10px 38px rgba(0, 0, 0, 0.35), 0 10px 20px rgba(0, 0, 0, 0.2)"
+                    : "0 10px 38px rgba(22, 23, 24, 0.1), 0 10px 20px rgba(22, 23, 24, 0.05)",
+                  backdropFilter: "blur(8px)",
+                  overflow: "visible",
+                },
               }}
-              transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-              anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+              transformOrigin={{ horizontal: "right", vertical: "top" }}
+              anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
               slotProps={{
                 paper: {
                   style: {
-                    marginTop: '8px'
-                  }
-                }
+                    marginTop: "8px",
+                  },
+                },
               }}
             >
               <div className="menu-item" onClick={handleZoomIn}>
                 <div className="menu-icon">
-                  <ZoomInIcon style={{ fontSize: '16px' }} />
+                  <ZoomInIcon style={{ fontSize: "16px" }} />
                 </div>
-                <span style={{ color: textColor, fontSize: '14px' }}>Zoom In</span>
+                <span style={{ color: textColor, fontSize: "14px" }}>
+                  Zoom In
+                </span>
               </div>
-              
+
               <div className="menu-item" onClick={handleZoomOut}>
                 <div className="menu-icon">
-                  <ZoomOutIcon style={{ fontSize: '16px' }} />
+                  <ZoomOutIcon style={{ fontSize: "16px" }} />
                 </div>
-                <span style={{ color: textColor, fontSize: '14px' }}>Zoom Out</span>
+                <span style={{ color: textColor, fontSize: "14px" }}>
+                  Zoom Out
+                </span>
               </div>
-              
+
               <div className="menu-item" onClick={handleCenter}>
                 <div className="menu-icon">
-                  <CenterIcon style={{ fontSize: '16px' }} />
+                  <CenterIcon style={{ fontSize: "16px" }} />
                 </div>
-                <span style={{ color: textColor, fontSize: '14px' }}>Center View</span>
+                <span style={{ color: textColor, fontSize: "14px" }}>
+                  Center View
+                </span>
               </div>
             </Menu>
           </div>
@@ -623,38 +671,53 @@ const GraphContent = ({ toggleDarkMode, isDarkMode }) => {
       </div>
 
       {/* Graph Container */}
-      <div style={{
-        backgroundColor: cardBg,
-        borderRadius: '12px',
-        border: `1px solid ${borderColor}`,
-        overflow: 'hidden',
-        boxShadow: isDarkMode ? '0 4px 6px rgba(0,0,0,0.3)' : '0 4px 6px rgba(0,0,0,0.07)'
-      }}>
-        <div style={{
-          borderBottom: `1px solid ${borderColor}`,
-          height: isMobile ? '400px' : '600px',
-          minHeight: '400px'
-        }}>
+      <div
+        style={{
+          backgroundColor: cardBg,
+          borderRadius: "12px",
+          border: `1px solid ${borderColor}`,
+          overflow: "hidden",
+          boxShadow: isdarkmode
+            ? "0 4px 6px rgba(0,0,0,0.3)"
+            : "0 4px 6px rgba(0,0,0,0.07)",
+        }}
+      >
+        <div
+          style={{
+            borderBottom: `1px solid ${borderColor}`,
+            height: isMobile ? "400px" : "600px",
+            minHeight: "400px",
+          }}
+        >
           <ForceGraph2D
             ref={fgRef}
             graphData={graphData}
-            backgroundColor={isDarkMode ? '#0f172a' : '#ffffff'}
-            width={isMobile ? Math.min(windowSize.width - 32, 600) : windowSize.width * 0.9}
+            backgroundColor={isdarkmode ? "#0f172a" : "#ffffff"}
+            width={
+              isMobile
+                ? Math.min(windowSize.width - 32, 600)
+                : windowSize.width * 0.9
+            }
             height={isMobile ? Math.min(windowSize.height * 0.6, 600) : 600}
-            nodeLabel={node => {
-              if (node.type === 'SDG' && node.tooltip) {
+            nodeLabel={(node) => {
+              if (node.type === "SDG" && node.tooltip) {
                 return node.tooltip;
               }
               return `${node.type}: ${getNodeLabel(node)}`;
             }}
-            nodeColor={node => getNodeColor(node)}
+            nodeColor={(node) => getNodeColor(node)}
             nodeAutoColorBy="type"
-            linkColor={() => isDarkMode ? '#4b5563' : '#d1d5db'}
+            linkColor={() => (isdarkmode ? "#4b5563" : "#d1d5db")}
             linkDirectionalArrowLength={4}
             linkDirectionalArrowRelPos={1}
-            linkWidth={link => link.topic_probability ? link.topic_probability * 3 : 
-                           link.mapping_weight ? link.mapping_weight * 3 : 1}
-            linkLabel={link => link.tooltip || link.type}
+            linkWidth={(link) =>
+              link.topic_probability
+                ? link.topic_probability * 3
+                : link.mapping_weight
+                ? link.mapping_weight * 3
+                : 1
+            }
+            linkLabel={(link) => link.tooltip || link.type}
             cooldownTicks={100}
             onNodeClick={(node) => {
               // Center on clicked node
@@ -669,52 +732,65 @@ const GraphContent = ({ toggleDarkMode, isDarkMode }) => {
               ctx.beginPath();
               ctx.arc(node.x, node.y, 6, 0, 2 * Math.PI, false);
               ctx.fill();
-              
+
               // Draw text label
-              ctx.fillStyle = isDarkMode ? '#f1f5f9' : '#111827';
+              ctx.fillStyle = isdarkmode ? "#f1f5f9" : "#111827";
               ctx.fillText(label, node.x + 8, node.y + 3);
             }}
           />
         </div>
 
         {/* Legend */}
-        <div style={{
-          padding: isMobile ? '16px' : '20px',
-          backgroundColor: isDarkMode ? '#0f172a' : '#f9fafb'
-        }}>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(150px, 1fr))',
-            gap: isMobile ? '12px' : '16px'
-          }}>
+        <div
+          style={{
+            padding: isMobile ? "16px" : "20px",
+            backgroundColor: isdarkmode ? "#0f172a" : "#f9fafb",
+          }}
+        >
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: isMobile
+                ? "repeat(2, 1fr)"
+                : "repeat(auto-fit, minmax(150px, 1fr))",
+              gap: isMobile ? "12px" : "16px",
+            }}
+          >
             {[
-              { label: 'Publication', color: '#FFD700' },
-              { label: 'Author', color: '#00BFFF' },
-              { label: 'Institution', color: '#32CD32' },
-              { label: 'Topic', color: '#FF69B4' },
-              { label: 'SDG', color: '#FF4500' }
+              { label: "Publication", color: "#FFD700" },
+              { label: "Author", color: "#00BFFF" },
+              { label: "Institution", color: "#32CD32" },
+              { label: "Topic", color: "#FF69B4" },
+              { label: "SDG", color: "#FF4500" },
             ].map((type) => (
-              <div key={type.label} style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '8px',
-                borderRadius: '6px',
-                backgroundColor: cardBg,
-                border: `1px solid ${borderColor}`
-              }}>
-                <div style={{
-                  width: '12px',
-                  height: '12px',
-                  borderRadius: '50%',
-                  backgroundColor: type.color,
-                  flexShrink: 0
-                }} />
-                <div style={{ 
-                  fontSize: isMobile ? '12px' : '14px',
-                  fontWeight: '500',
-                  color: textColor
-                }}>
+              <div
+                key={type.label}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "8px",
+                  borderRadius: "6px",
+                  backgroundColor: cardBg,
+                  border: `1px solid ${borderColor}`,
+                }}
+              >
+                <div
+                  style={{
+                    width: "12px",
+                    height: "12px",
+                    borderRadius: "50%",
+                    backgroundColor: type.color,
+                    flexShrink: 0,
+                  }}
+                />
+                <div
+                  style={{
+                    fontSize: isMobile ? "12px" : "14px",
+                    fontWeight: "500",
+                    color: textColor,
+                  }}
+                >
                   {type.label}
                 </div>
               </div>
@@ -724,17 +800,20 @@ const GraphContent = ({ toggleDarkMode, isDarkMode }) => {
       </div>
 
       {/* Info Footer */}
-      <div style={{
-        marginTop: '16px',
-        padding: '12px',
-        backgroundColor: isDarkMode ? '#1f2937' : '#f3f4f6',
-        borderRadius: '8px',
-        fontSize: isMobile ? '12px' : '14px',
-        color: isDarkMode ? '#9ca3af' : '#6b7280',
-        textAlign: 'center'
-      }}>
-        Interactive visualization of publications, authors, institutions, topics, and SDGs
-        {!isMobile && ' • Click nodes to explore • Scroll/drag to navigate'}
+      <div
+        style={{
+          marginTop: "16px",
+          padding: "12px",
+          backgroundColor: isdarkmode ? "#1f2937" : "#f3f4f6",
+          borderRadius: "8px",
+          fontSize: isMobile ? "12px" : "14px",
+          color: isdarkmode ? "#9ca3af" : "#6b7280",
+          textAlign: "center",
+        }}
+      >
+        Interactive visualization of publications, authors, institutions,
+        topics, and SDGs
+        {!isMobile && " • Click nodes to explore • Scroll/drag to navigate"}
       </div>
     </div>
   );
