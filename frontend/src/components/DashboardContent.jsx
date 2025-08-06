@@ -673,7 +673,7 @@ const DashboardContent = ({ isDarkMode = false }) => {
 
   const stats = currentAnalysis ? [
     {
-      label: 'Total Dokumen',
+      label: 'Total Data',
       value: currentAnalysis.document_count.toLocaleString(),
       icon: <ArticleIcon style={{ color: '#6366f1', fontSize: isMobile ? '1.2rem' : '1.5rem' }} />
     },
@@ -683,7 +683,7 @@ const DashboardContent = ({ isDarkMode = false }) => {
       icon: <TrendingUpIcon style={{ color: '#10b981', fontSize: isMobile ? '1.2rem' : '1.5rem' }} />
     },
     {
-      label: 'Dataset Uploaded',
+      label: 'Korpus Terupload',
       value: currentAnalysis.dataset_count.toString(),
       icon: <UploadFileIcon style={{ color: '#f59e0b', fontSize: isMobile ? '1.2rem' : '1.5rem' }} />
     },
@@ -1021,7 +1021,7 @@ const DashboardContent = ({ isDarkMode = false }) => {
                   borderBottom: `2px solid ${borderColor}`,
                   width: isMobile ? '14%' : '12%',
                   fontSize: isMobile ? '14px' : '16px'
-                }}>Docs</th>
+                }}>Data</th>
                 <th style={{
                   textAlign: 'center',
                   padding: isMobile ? '12px 8px' : '16px',

@@ -44,6 +44,7 @@ import DocumentContent from "../components/DocumentContent";
 import AnalisisContent from "../components/AnalisisContent";
 import UploadContent from "../components/UploadContent";
 import ProfileContent from "../components/ProfileContent";
+import AccountTreeIcon from '@mui/icons-material/AccountTree'
 import { UserButton, useUser } from "@clerk/clerk-react";
 import {
   motion,
@@ -464,7 +465,7 @@ const tabsData = [
   { icon: ArticleOutlined, label: "Dokumen", content: DocumentContent },
   { icon: TrendingUp, label: "Analisis", content: AnalisisContent },
   { icon: FileUploadOutlined, label: "Upload", content: UploadContent },
-  { icon: TargetIcon, label: "Visualisasi Graph", content: GraphContent },
+  { icon: AccountTreeIcon, label: "Visualisasi Graph", content: GraphContent },
 ];
 
 function MainDashboard() {
