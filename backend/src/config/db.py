@@ -1,26 +1,40 @@
+from fastapi import HTTPException
+from io import BytesIO
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta
+from datetime import datetime
 from . import models
 
-def get_user(user_data: dict, db: Session):
-    user = db.query(models.User).filter(models.User.id == user_data["user_id"]).first()
-    if not user:
-        user = models.User(
-            id=user_data["user_id"],
-            user_name=user_data["user_name"],
-            email=user_data["email"],
-            first_name=user_data["first_name"],
-            last_name=user_data["last_name"],
-            organization=user_data["organization"]
-        )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-    return user
+
 
 def get_corpus_uploaded(db: Session):
     return db.query(models.Corpus).all()
 
+def get_corpus_by(db: Session, user_id=str):
+    return db.query(
+        models.FilesUploaded.id,
+        models.FilesUploaded.file_name,
+        models.FilesUploaded.file_size,
+        models.FilesUploaded.file_type,
+        models.FilesUploaded.date_uploaded
+    ).filter(models.FilesUploaded.uploaded_by==user_id).all()
+    
+def download_file(db: Session, file_id: int):
+    corpus = db.query(models.Corpus).filter(models.Corpus.file_id == file_id).first()
+
+    if not corpus or not corpus.file_real:
+        raise HTTPException(status_code=404, detail="File not found")
+
+    file_stream = BytesIO(corpus.file_real)
+
+    filename = corpus.file_name or "downloaded_file"
+
+    return StreamingResponse(
+        file_stream,
+        media_type="application/octet-stream",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+    
 def insert_file_record(
     db: Session, 
     user_id: str, 
@@ -50,8 +64,6 @@ def insert_corpus(
     file_name: str,
     file_size: int,
     file_type: str,
-    title: str,
-    abstract: str,
     date_uploaded: datetime,
     file_real: bytes
 ):
@@ -61,8 +73,6 @@ def insert_corpus(
         file_name=file_name,
         file_size=file_size,
         file_type=file_type,
-        title=title,
-        abstract=abstract,
         date_uploaded=date_uploaded,
         file_real=file_real
     )
@@ -88,11 +98,7 @@ def upload_merged(
     
     return db_merged
 
-def get_corpus_by(db: Session, uploaded_by: str):
-    return (db.query(models.FilesUploaded)
-            .filter(models.FilesUploaded.uploaded_by==uploaded_by)
-            .all()
-            )
+
     
 
 # from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorGridFSBucket

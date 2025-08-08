@@ -11,16 +11,12 @@ def enforce_foreign_keys(dbapi_connection, connection_record):
     cursor.close()
 Base=declarative_base()
 
-
 class User(Base):
     __tablename__ = 'users'
     
     id=Column(String, primary_key=True)
     user_name=Column(String, nullable=False, default="Researcher")
     email=Column(String, nullable=False)
-    first_name=Column(String, nullable=False)
-    last_name=Column(String, nullable=False)
-    organization=Column(String, nullable=False, default="No Organization")
     
     uploaded=relationship("FilesUploaded", back_populates="users", cascade="all")
     corpuses=relationship("Corpus", back_populates="users", cascade="all")
@@ -52,8 +48,6 @@ class Corpus(Base):
     file_id=Column(Integer, ForeignKey(FilesUploaded.id, ondelete="CASCADE"), nullable=False)
     uploaded_by=Column(String,  ForeignKey(User.id, ondelete="CASCADE"), nullable=False)
     date_uploaded=Column(DateTime, default=datetime.now)
-    title=Column(String, nullable=False)
-    abstract=Column(String, nullable=False)
     file_real=Column(LargeBinary, nullable=False)
     
     users=relationship("User", back_populates="corpuses", passive_deletes=True)

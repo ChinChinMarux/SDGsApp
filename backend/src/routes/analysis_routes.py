@@ -1,13 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from datetime import datetime
+from typing import List, Optional
 from sqlalchemy.orm import Session
-from ..config.db import (
-    get_corpus_by
-)
+from ..utils import authenticate_and_get_user_details
 from ..config import models
 from ..config.models import get_db
 from ..services.model_handler import run_lda_analysis
+import json
 
 router = APIRouter()
 
@@ -17,11 +17,15 @@ class AnalysisRequest(BaseModel):
     iteration: int
     date_analyzed: datetime
 
-
 @router.post("/analyze")
-def start_analysis(payload: AnalysisRequest, db: Session = Depends(get_db)):
+def start_analysis(request: Request, payload: AnalysisRequest, db: Session = Depends(get_db)):
+    # Validasi User
+    user_details= authenticate_and_get_user_details(request, db)
+    user_id = user_details.get("user_id")
     # Validasi file
-    file = db.query(models.FilesUploaded).filter(models.FilesUploaded.id == payload.file_id).first()
+    file = db.query(models.FilesUploaded).filter(
+        models.FilesUploaded.id == payload.file_id,
+        models.FilesUploaded.uploaded_by==user_id).first()
     if not file:
         raise HTTPException(status_code=404, detail="File not found")
 
@@ -72,3 +76,55 @@ def start_analysis(payload: AnalysisRequest, db: Session = Depends(get_db)):
             "topics": result.topic_result,
         },
     }
+    
+@router.get("/a/{file_id}")
+async def get_latest_analysis(
+    request: Request,
+    file_id:int,
+    db: Session = Depends(get_db)
+):
+    """Get the most recent completed analysis for the user"""
+    try:
+        
+        user_details = authenticate_and_get_user_details(request, db)
+        user = user_details.get("user_id")
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+       
+        latest_analysis = db.query(models.AnalysisResult).filter(
+            models.AnalysisResult.file_id==file_id,
+            models.FilesUploaded.uploaded_by==user).order_by(
+            models.AnalysisResult.id.desc()).first()
+        
+        if not latest_analysis:
+            raise HTTPException(status_code=404, detail="No completed analysis found")
+        
+        
+        topics = (
+            json.loads(latest_analysis.topic_result)
+            if isinstance(latest_analysis.topic_result, str)
+            else latest_analysis.topic_result or []
+        )
+
+        # sdg_results = (
+        #     json.loads(latest_analysis.sdg_result)
+        #     if isinstance(latest_analysis.sdg_result, str)
+        #     else latest_analysis.sdg_result or []
+        # )
+
+        
+        return {
+            "success": True,
+            "data": {
+                "topics": topics,  
+                "topic_distribution": topics,  
+                # "sdg_mapping": sdg_results,
+                "file_name": latest_analysis.file_name
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get latest analysis: {str(e)}")

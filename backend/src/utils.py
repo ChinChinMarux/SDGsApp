@@ -1,4 +1,6 @@
 from fastapi import Request, HTTPException
+from sqlalchemy.orm import Session
+from src.config import models
 from clerk_backend_api import Clerk, AuthenticateRequestOptions
 import os
 from dotenv import load_dotenv
@@ -7,7 +9,7 @@ load_dotenv()
 
 clerk_sdk = Clerk(bearer_auth=os.getenv("CLERK_SECRET_KEY"))
 
-def authhenticate_and_get_user_details(request: Request):
+def authenticate_and_get_user_details(request: Request, db: Session):
     try:
         auth_header = request.headers.get("authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
@@ -27,26 +29,34 @@ def authhenticate_and_get_user_details(request: Request):
         payload = request_state.payload
 
         user_id = payload.get("sub")
-        user_name = payload.get("username") or ""
+        user_name = payload.get("username") or "Researcher"
         email = payload.get("email_address") or ""
-        first_name = payload.get("first_name") or ""
-        last_name = payload.get("last_name") or ""
-        organization = payload.get("organization") or "No Organization"  # custom claim jika ada
 
         if not user_id:
             raise HTTPException(status_code=400, detail="Token missing essential user_id")
-        print("Token payload:", payload)
 
+        # Simpan atau update user di database
+        user = db.query(models.User).filter_by(id=user_id).first()
+        if user:
+            # update user
+            user.username = user_name
+            user.email = email
+        else:
+            # insert user
+            user = models.User(
+                id=user_id,
+                user_name=user_name,
+                email=email,
+            )
+            db.add(user)
+
+        db.commit()
 
         return {
             "user_id": user_id,
             "user_name": user_name,
             "email": email,
-            "first_name": first_name,
-            "last_name": last_name,
-            "organization": organization
         }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Token validation error: {str(e)}")
-

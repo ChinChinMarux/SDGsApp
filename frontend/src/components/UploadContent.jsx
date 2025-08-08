@@ -34,24 +34,27 @@ import {
 import { useAuth } from "@clerk/clerk-react";
 import axios from "axios";
 
-const API_URL = "http://localhost:8000/api";
 const SDGUploadPage = ({ isdarkmode = false }) => {
+  const API_URL = "http://localhost:8000/api";
   const { getToken } = useAuth();
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   // State management
   const [state, setState] = useState({
     korpus: [],
     dragOverDocument: false,
     dragOverKorpus: false,
     uploadProgress: {},
-    previewDialog: { open: false, file: null },
+    previewDialog: { open: false, file: null, content: "" },
     deleteDialog: { open: false, file: null, type: null },
     snackbar: { open: false, message: "", severity: "success" },
   });
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [files, setFiles] = useState({ korpus: [] });
+  const [loading, setLoading] = useState(false);
+
   const refs = {
     documentInput: useRef(null),
     korpusInput: useRef(null),
@@ -68,8 +71,6 @@ const SDGUploadPage = ({ isdarkmode = false }) => {
     success: "#38a169",
   };
 
-  // File type configurations
-  // Allowed file types
   const documentTypes = {
     "application/pdf": ".pdf",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
@@ -113,23 +114,6 @@ const SDGUploadPage = ({ isdarkmode = false }) => {
     }
   };
 
-  const validateFile = (file, allowedTypes) => {
-    if (!allowedTypes[file.type]) {
-      return { valid: false, error: `File type ${file.type} not supported` };
-    }
-    if (file.size > maxFileSize) {
-      return { valid: false, error: `File size exceeds 100MB limit` };
-    }
-    return { valid: true };
-  };
-
-  const maxFileSizeMB = 100;
-  const maxFileSize = maxFileSizeMB * 1024 * 1024; // 50MB
-
-  const generateFileId = () => {
-    return uuidv4();
-  };
-
   const extensionHandle = (mimeType) => {
     switch (mimeType) {
       case "application/json":
@@ -149,102 +133,128 @@ const SDGUploadPage = ({ isdarkmode = false }) => {
     }
   };
 
-  useEffect(() => {
-    const fetchUploadedFiles = async () => {
-      try {
-        const token = await getToken();
-        const res = await fetch(`${API_URL}/c/uploaded`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        const normalized = data.map((file) => ({
+  const validateFile = (file, allowedTypes) => {
+    if (!allowedTypes[file.type]) {
+      return { valid: false, error: `File type ${file.type} not supported` };
+    }
+    if (file.size > maxFileSize) {
+      return { valid: false, error: `File size exceeds 100MB limit` };
+    }
+    return { valid: true };
+  };
+
+  const maxFileSizeMB = 100;
+  const maxFileSize = maxFileSizeMB * 1024 * 1024;
+
+  // Fetch uploaded files from API
+  const fetchUploadedFiles = async () => {
+    setLoading(true);
+    try {
+      const token = await getToken();
+      const response = await axios.get(`${API_URL}/c/uploaded`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (Array.isArray(response.data)) {
+        const normalized = response.data.map((file) => ({
           ...file,
-          name: file.file_name,
+          name: file.file_name || file.nameFile,
+          size: file.file_size || 0, // bytes
+          uploadedAt: file.uploaded_at || null,
+          extension: file.extension || "",
           status: "completed",
         }));
         setUploadedFiles(normalized);
-
-        if (Array.isArray(data)) {
-          setUploadedFiles(data);
-        } else {
-          console.warn("Expected array, got:", data);
-          setUploadedFiles([]);
-        }
-      } catch (err) {
-        console.error("Gagal fetch uploaded files", err);
+      } else {
+        console.warn("Expected array, got:", response.data);
         setUploadedFiles([]);
       }
-    };
-
-    fetchUploadedFiles();
-  }, []);
-
-  const UploadComponent = () => {
-    const handleInputChange = (e) => {
-      const fileList = Array.from(e.target.files);
-      handleFileUpload(fileList, "korpus");
-    };
-
-    return (
-      <Box>
-        <Button onClick={() => refs["korpusInput"].current.click()}>
-          Select Files
-        </Button>
-        <input
-          ref={refs["korpusInput"]}
-          type="file"
-          multiple
-          accept={Object.values(korpusTypes).join(",")}
-          onChange={handleInputChange}
-          style={{ display: "none" }}
-        />
-      </Box>
-    );
+    } catch (err) {
+      console.error("Failed to fetch uploaded files:", err);
+      showSnackbar("Failed to fetch uploaded files", "error");
+      setUploadedFiles([]);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // View file function
+  const handleViewFile = async (file) => {
+    try {
+      const token = await getToken();
+      const response = await axios.get(`${API_URL}/c/view/${file_id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      setState((prev) => ({
+        ...prev,
+        previewDialog: {
+          open: true,
+          file: file,
+          content: response.data.content || "File content not available",
+        },
+      }));
+    } catch (err) {
+      console.error("Failed to view file:", err);
+      showSnackbar("Failed to view file", "error");
+    }
+  };
+
+  // Delete file function
+  const handleDeleteFile = async (file) => {
+    try {
+      const token = await getToken();
+      await axios.delete(`${API_URL}/c/delete/${file_id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      // Remove from local state
+      setUploadedFiles((prev) => prev.filter((f) => f.id !== file.id));
+
+      setState((prev) => ({
+        ...prev,
+        deleteDialog: { open: false, file: null, type: null },
+      }));
+
+      showSnackbar("File deleted successfully", "success");
+    } catch (err) {
+      console.error("Failed to delete file:", err);
+      showSnackbar("Failed to delete file", "error");
+    }
+  };
+
+  useEffect(() => {
+    fetchUploadedFiles();
+  }, [getToken]);
 
   const handleFileUpload = async (fileList, type) => {
     try {
       const token = await getToken();
-      console.log("Token:", token);
       if (!token) {
         showSnackbar("Authentication required. Please sign in.", "error");
         return;
       }
 
       const allowedTypes = type === "document" ? documentTypes : korpusTypes;
-      const allowedSize = maxFileSize;
-
-      const updateUploadStatus = (fileId, status) => {
-        setState((prev) => {
-          const currentList = Array.isArray(prev[type]) ? prev[type] : [];
-
-          return {
-            ...prev,
-            [type]: currentList.map((f) =>
-              f.id === fileId ? { ...f, status } : f
-            ),
-            uploadProgress:
-              status === "completed" || status === "failed"
-                ? Object.fromEntries(
-                    Object.entries(prev.uploadProgress || {}).filter(
-                      ([id]) => id !== fileId
-                    )
-                  )
-                : prev.uploadProgress,
-          };
-        });
-      };
 
       for (const file of fileList) {
-        const validation = validateFile(file, allowedTypes, allowedSize);
+        const validation = validateFile(file, allowedTypes);
         if (!validation.valid) {
-          alert(validation.error);
+          showSnackbar(validation.error, "error");
           continue;
         }
 
-        const fileId = file.name + "-" + Date.now(); // unique ID
+        const fileId = file.name + "-" + Date.now();
 
-        // Tambah file ke state (status "uploading")
         setState((prev) => ({
           ...prev,
           [type]: [
@@ -257,13 +267,11 @@ const SDGUploadPage = ({ isdarkmode = false }) => {
         formData.append("file", file);
 
         try {
-          const res = await axios.post(`${API_URL}/c/upload`, formData, {
+          const response = await axios.post(`${API_URL}/c/upload`, formData, {
             headers: {
               "Content-Type": "multipart/form-data",
               Authorization: `Bearer ${token}`,
             },
-            withCredentials: true,
-
             onUploadProgress: (progressEvent) => {
               const percent = Math.round(
                 (progressEvent.loaded * 100) / progressEvent.total
@@ -278,12 +286,29 @@ const SDGUploadPage = ({ isdarkmode = false }) => {
             },
           });
 
-          updateUploadStatus(fileId, "completed");
+          setState((prev) => ({
+            ...prev,
+            [type]: prev[type].map((f) =>
+              f.id === fileId ? { ...f, status: "completed" } : f
+            ),
+            uploadProgress: Object.fromEntries(
+              Object.entries(prev.uploadProgress || {}).filter(
+                ([id]) => id !== fileId
+              )
+            ),
+          }));
+
           showSnackbar("File uploaded successfully!", "success");
-          console.log("Upload berhasil:", res.data);
+          // Refresh the uploaded files list
+          fetchUploadedFiles();
         } catch (err) {
-          updateUploadStatus(fileId, "failed");
-          console.error("Upload gagal:", err.response?.data || err.message);
+          setState((prev) => ({
+            ...prev,
+            [type]: prev[type].map((f) =>
+              f.id === fileId ? { ...f, status: "failed" } : f
+            ),
+          }));
+          console.error("Upload failed:", err.response?.data || err.message);
           showSnackbar("Upload failed!", "error");
         }
       }
@@ -336,7 +361,7 @@ const SDGUploadPage = ({ isdarkmode = false }) => {
                 maxWidth: isMobile ? "150px" : "300px",
               }}
             >
-              {file.name}
+              {file.name || file.file_name || file.nameFile}
             </Typography>
             {file.status === "completed" && (
               <CheckCircleIcon
@@ -353,7 +378,8 @@ const SDGUploadPage = ({ isdarkmode = false }) => {
                 color: isdarkmode ? "#aaa" : "#666",
               }}
             >
-              {formatFileSize(file.file_size)} • {file.date_uploaded}
+              {formatFileSize(file.file_size)} •{" "}
+              {new Date(file.date_uploaded).toLocaleString()}
             </Typography>
             {state.uploadProgress[file.id] !== undefined && (
               <Box sx={{ mt: 0.5 }}>
@@ -381,12 +407,7 @@ const SDGUploadPage = ({ isdarkmode = false }) => {
         <Box sx={{ display: "flex", gap: isMobile ? 0.5 : 1 }}>
           <IconButton
             size="small"
-            onClick={() =>
-              setState((prev) => ({
-                ...prev,
-                previewDialog: { open: true, file },
-              }))
-            }
+            onClick={() => handleViewFile(file)}
             sx={{
               color: colors.primary,
               p: isMobile ? 0.5 : 1,
@@ -418,6 +439,7 @@ const SDGUploadPage = ({ isdarkmode = false }) => {
     const isDragOver =
       state[`dragOver${type.charAt(0).toUpperCase() + type.slice(1)}`];
     const zoneColor = type === "document" ? colors.primary : colors.secondary;
+
     return (
       <Box
         onDragOver={(e) => {
@@ -440,7 +462,7 @@ const SDGUploadPage = ({ isdarkmode = false }) => {
             ...prev,
             [`dragOver${type.charAt(0).toUpperCase() + type.slice(1)}`]: false,
           }));
-          handleFileUpload({ target: { files: e.dataTransfer.files } }, type);
+          handleFileUpload(Array.from(e.dataTransfer.files), type);
         }}
         onClick={() => refs[`${type}Input`].current?.click()}
         sx={{
@@ -507,7 +529,7 @@ const SDGUploadPage = ({ isdarkmode = false }) => {
           type="file"
           multiple
           accept={Object.values(korpusTypes).join(",")}
-          onChange={(e) => handleFileUpload(e.target.files, type)}
+          onChange={(e) => handleFileUpload(Array.from(e.target.files), type)}
           style={{ display: "none" }}
         />
       </Box>
@@ -600,17 +622,41 @@ const SDGUploadPage = ({ isdarkmode = false }) => {
           />
 
           <Box sx={{ mt: isMobile ? 2 : 3 }}>
-            <Typography
+            <Box
               sx={{
-                fontWeight: 600,
-                fontSize: isMobile ? "1rem" : "1.125rem",
-                color: colors.text,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
                 mb: isMobile ? 1 : 2,
               }}
             >
-              Uploaded Corpus
-            </Typography>
-            {files.korpus.length === 0 ? (
+              <Typography
+                sx={{
+                  fontWeight: 600,
+                  fontSize: isMobile ? "1rem" : "1.125rem",
+                  color: colors.text,
+                }}
+              >
+                Uploaded Corpus ({uploadedFiles.length})
+              </Typography>
+              <Button
+                onClick={fetchUploadedFiles}
+                disabled={loading}
+                size="small"
+                sx={{ textTransform: "none" }}
+              >
+                {loading ? "Loading..." : "Refresh"}
+              </Button>
+            </Box>
+
+            {loading ? (
+              <Box sx={{ textAlign: "center", py: 3 }}>
+                <LinearProgress sx={{ mb: 2 }} />
+                <Typography sx={{ color: isdarkmode ? "#aaa" : "#666" }}>
+                  Loading files...
+                </Typography>
+              </Box>
+            ) : uploadedFiles.length === 0 ? (
               <Typography
                 sx={{
                   textAlign: "center",
@@ -623,123 +669,9 @@ const SDGUploadPage = ({ isdarkmode = false }) => {
               </Typography>
             ) : (
               <List sx={{ p: 0 }}>
-                {Array.isArray(uploadedFiles) &&
-                  uploadedFiles.map((file) => (
-                    <ListItem
-                      key={file.id}
-                      file={file}
-                      type="korpus"
-                      sx={{
-                        border: `1px solid ${colors.border}`,
-                        borderRadius: "12px",
-                        mb: 1,
-                        p: isMobile ? 1 : 2,
-                        bgcolor: colors.bg,
-                        transition: "all 0.2s ease",
-                        "&:hover": { transform: "translateX(2px)" },
-                      }}
-                    >
-                      {file.file_name} | {file.status} | {file.date_uploaded}
-                      <ListItemIcon sx={{ minWidth: isMobile ? 44 : 56 }}>
-                        <Box
-                          sx={{
-                            width: isMobile ? 36 : 44,
-                            height: isMobile ? 36 : 44,
-                            borderRadius: "10px",
-                            bgcolor: isdarkmode ? "#2b2b3a" : "#f5f7fa",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          {getFileIcon({ name: file.nameFile })}
-                        </Box>
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 1,
-                            }}
-                          >
-                            <Typography
-                              sx={{
-                                fontWeight: 600,
-                                fontSize: isMobile ? "0.875rem" : "1rem",
-                                color: colors.text,
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                                maxWidth: isMobile ? "150px" : "300px",
-                              }}
-                            >
-                              {file.nameFile}
-                            </Typography>
-                            <CheckCircleIcon
-                              sx={{
-                                color: colors.success,
-                                fontSize: isMobile ? 16 : 20,
-                              }}
-                            />
-                          </Box>
-                        }
-                        secondary={
-                          <Typography
-                            sx={{
-                              fontSize: isMobile ? "0.75rem" : "0.875rem",
-                              color: isdarkmode ? "#aaa" : "#666",
-                            }}
-                          >
-                            {formatFileSize(file.file_size)} •{" "}
-                            {new Date(file.date_uploaded).toLocaleString()}
-                          </Typography>
-                        }
-                        sx={{ my: 0 }}
-                      />
-                      <ListItemSecondaryAction>
-                        <Box sx={{ display: "flex", gap: isMobile ? 0.5 : 1 }}>
-                          <IconButton
-                            size="small"
-                            onClick={() =>
-                              setState((prev) => ({
-                                ...prev,
-                                previewDialog: { open: true, file },
-                              }))
-                            }
-                            sx={{
-                              color: colors.primary,
-                              p: isMobile ? 0.5 : 1,
-                            }}
-                          >
-                            <ViewIcon
-                              fontSize={isMobile ? "small" : "medium"}
-                            />
-                          </IconButton>
-
-                          <IconButton
-                            size="small"
-                            onClick={() =>
-                              setState((prev) => ({
-                                ...prev,
-                                deleteDialog: {
-                                  open: true,
-                                  file,
-                                  type: "korpus",
-                                },
-                              }))
-                            }
-                            sx={{ color: colors.error, p: isMobile ? 0.5 : 1 }}
-                          >
-                            <DeleteIcon
-                              fontSize={isMobile ? "small" : "medium"}
-                            />
-                          </IconButton>
-                        </Box>
-                      </ListItemSecondaryAction>
-                    </ListItem>
-                  ))}
+                {uploadedFiles.map((file) => (
+                  <FileListItem key={file.id} file={file} type="korpus" />
+                ))}
               </List>
             )}
           </Box>
@@ -751,10 +683,10 @@ const SDGUploadPage = ({ isdarkmode = false }) => {
           onClose={() =>
             setState((prev) => ({
               ...prev,
-              previewDialog: { ...prev.previewDialog, open: false },
+              previewDialog: { open: false, file: null, content: "" },
             }))
           }
-          maxWidth="sm"
+          maxWidth="md"
           fullWidth
           fullScreen={isMobile}
         >
@@ -776,7 +708,8 @@ const SDGUploadPage = ({ isdarkmode = false }) => {
                     mb: 1,
                   }}
                 >
-                  {state.previewDialog.file.name}
+                  {state.previewDialog.file.name ||
+                    state.previewDialog.file.file_name}
                 </Typography>
                 <Typography
                   variant="body2"
@@ -794,14 +727,31 @@ const SDGUploadPage = ({ isdarkmode = false }) => {
                     p: 3,
                     borderRadius: "8px",
                     bgcolor: isdarkmode ? "#2b2b3a" : "#f5f7fa",
-                    textAlign: "center",
+                    border: `1px solid ${colors.border}`,
+                    minHeight: "200px",
+                    maxHeight: "400px",
+                    overflow: "auto",
                   }}
                 >
-                  {getFileIcon(state.previewDialog.file)}
-                  <Typography sx={{ mt: 2, color: "text.secondary" }}>
-                    File preview functionality will be implemented with actual
-                    content
-                  </Typography>
+                  {state.previewDialog.content ? (
+                    <Typography
+                      component="pre"
+                      sx={{
+                        whiteSpace: "pre-wrap",
+                        fontSize: "0.875rem",
+                        fontFamily: "monospace",
+                      }}
+                    >
+                      {state.previewDialog.content}
+                    </Typography>
+                  ) : (
+                    <Box sx={{ textAlign: "center", py: 4 }}>
+                      {getFileIcon(state.previewDialog.file)}
+                      <Typography sx={{ mt: 2, color: "text.secondary" }}>
+                        File content could not be loaded
+                      </Typography>
+                    </Box>
+                  )}
                 </Box>
               </Box>
             )}
@@ -816,7 +766,7 @@ const SDGUploadPage = ({ isdarkmode = false }) => {
               onClick={() =>
                 setState((prev) => ({
                   ...prev,
-                  previewDialog: { ...prev.previewDialog, open: false },
+                  previewDialog: { open: false, file: null, content: "" },
                 }))
               }
               sx={{
@@ -835,7 +785,7 @@ const SDGUploadPage = ({ isdarkmode = false }) => {
           onClose={() =>
             setState((prev) => ({
               ...prev,
-              deleteDialog: { ...prev.deleteDialog, open: false },
+              deleteDialog: { open: false, file: null, type: null },
             }))
           }
           maxWidth="xs"
@@ -846,7 +796,10 @@ const SDGUploadPage = ({ isdarkmode = false }) => {
           </DialogTitle>
           <DialogContent sx={{ p: isMobile ? 2 : 3 }}>
             <Typography sx={{ fontSize: isMobile ? "0.875rem" : "1rem" }}>
-              Are you sure you want to delete "{state.deleteDialog.file?.name}"?
+              Are you sure you want to delete "
+              {state.deleteDialog.file?.name ||
+                state.deleteDialog.file?.file_name}
+              "?
             </Typography>
           </DialogContent>
           <DialogActions sx={{ p: isMobile ? 2 : 3 }}>
@@ -854,7 +807,7 @@ const SDGUploadPage = ({ isdarkmode = false }) => {
               onClick={() =>
                 setState((prev) => ({
                   ...prev,
-                  deleteDialog: { ...prev.deleteDialog, open: false },
+                  deleteDialog: { open: false, file: null, type: null },
                 }))
               }
               sx={{
@@ -865,20 +818,7 @@ const SDGUploadPage = ({ isdarkmode = false }) => {
               Cancel
             </Button>
             <Button
-              onClick={() => {
-                const { file, type } = state.deleteDialog;
-                setFiles((prev) => ({
-                  ...prev,
-                  [type]: prev[type].filter((f) => f.idFile !== file.idFile),
-                }));
-
-                setState((prev) => ({
-                  ...prev,
-                  deleteDialog: { ...prev.deleteDialog, open: false },
-                }));
-
-                showSnackbar("File deleted successfully", "success");
-              }}
+              onClick={() => handleDeleteFile(state.deleteDialog.file)}
               color="error"
               variant="contained"
               sx={{

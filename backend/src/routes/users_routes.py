@@ -1,20 +1,16 @@
 from fastapi import APIRouter, Request, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from ..config.db import (get_user)
 from ..config import models
-from ..utils import authhenticate_and_get_user_details
+from ..utils import authenticate_and_get_user_details
 from ..config.models import get_db
 
 router = APIRouter()
 
 class UserCreate(BaseModel):
     id: str
-    name: str
+    user_name: str
     email: str
-    first_name: str
-    last_name: str
-    organization: str
     
 @router.post("/user-create")
 def add_user(user: UserCreate, db: Session = Depends(get_db)):
@@ -26,11 +22,8 @@ def add_user(user: UserCreate, db: Session = Depends(get_db)):
     # Tambahkan user baru
     new_user = models.User(
         id=user.id, 
-        user_name=user.name, 
+        name=user.user_name, 
         email=user.email,
-        first_name=user.first_name,
-        last_name=user.last_name,
-        organization=user.organization
         )
     db.add(new_user)
     db.commit()
@@ -39,8 +32,8 @@ def add_user(user: UserCreate, db: Session = Depends(get_db)):
         "message": "User added", 
         "user": user}
 
-@router.get("/user")
-def secure_route(request: Request, db: Session = Depends(get_db)):
-    user_data = authhenticate_and_get_user_details(request)
-    user = get_user(user_data, db)
-    return {"message": f"Welcome {user.user_name}"}
+# @router.get("/user")
+# def secure_route(request: Request, db: Session = Depends(get_db)):
+#     user_data = authenticate_and_get_user_details(request)
+#     user = get_user(user_data, db)
+#     return {"message": f"Welcome {user.user_name}"}
