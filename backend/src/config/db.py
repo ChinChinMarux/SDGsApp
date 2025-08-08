@@ -21,7 +21,6 @@ def get_user(user_data: dict, db: Session):
 def get_corpus_uploaded(db: Session):
     return db.query(models.Corpus).all()
 
-<<<<<<< HEAD
 def insert_file_record(
     db: Session, 
     user_id: str, 
@@ -31,12 +30,6 @@ def insert_file_record(
     date_uploaded: datetime,
     status:str
     ) -> int:
-=======
-def get_sdg_mappings(db: Session):
-    return db.query(models.SDGMapping).all()
-
-def insert_file_record(db: Session, user_id: str, file_name: str) -> int:
->>>>>>> 7f1b227 (Deskripsi perubahan keseluruhan project)
     file_record = models.FilesUploaded(
         uploaded_by=user_id,
         file_name=file_name,
@@ -100,7 +93,6 @@ def upload_merged(
     db.commit()
     db.refresh(db_merged)
     
-<<<<<<< HEAD
     return db_merged
 
 def get_corpus_by(db: Session, uploaded_by: str):
@@ -130,6 +122,3 @@ def get_corpus_by(db: Session, uploaded_by: str):
 # except Exception as e:
 #     print(e)
     
-=======
-    return db_merged
->>>>>>> 7f1b227 (Deskripsi perubahan keseluruhan project)
