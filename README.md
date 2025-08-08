@@ -1,75 +1,97 @@
 # 🌍 SDGs Mapping Tools
 
-A web application built using the **FARM Stack (FastAPI, React.js, MongoDB)** to assist in **mapping scientific publications to Sustainable Development Goals (SDGs)** using keyword extraction and topic modeling.
+A web application built using the **FastAPI & React Framework** with **SQLAlchemy ORM** to assist in **mapping scientific publications to Sustainable Development Goals (SDGs)** using keyword extraction and topic modeling.
 
 ---
 
 ## 📌 Project Overview
 
-**SDGs Mapping Tools** is a medium-scale research-oriented application developed to meet the analytical needs of **Pusat Riset Sains Data dan Informasi, BRIN Bandung**. The app facilitates:
+**SDGs Mapping Tools** is a medium-scale research-oriented application developed for **Pusat Riset Sains Data dan Informasi, BRIN Bandung** to:
 
-- **Upload and processing of scientific documents**
-- **Automatic extraction of keywords**
-- **Topic classification and mapping to 17 SDGs**
-- **Interactive visualization of mapping results**
+- 📤 Upload and process scientific documents
+- 🔍 Automatically extract keywords
+- 🧠 Perform topic classification and map results to **17 SDGs**
+- 📊 Provide interactive visualization of mapping results
 
-This project is collaboratively built by:
+**Developed by:**
 - 👤 Bimo Kusumo  
 - 👤 Yusry Anandita  
 - 👤 Evan Adkara
 
 ---
 
-## ⚙️ Tech Stack – FARM Stack
+## ⚙️ Tech Stack – FastAPI & React + SQLAlchemy
 
-| Component | Technology  | Description |
-|----------|--------------|-------------|
-| **Frontend** | [React.js](https://reactjs.org/) | Building a fast, responsive user interface |
-| **Backend** | [FastAPI](https://fastapi.tiangolo.com/) | High-performance API for processing and inference |
-| **Database** | [MongoDB](https://www.mongodb.com/) | NoSQL database for flexible and scalable document storage |
+| Component     | Technology                                                                 | Description |
+|--------------|-----------------------------------------------------------------------------|-------------|
+| **Frontend** | [React.js](https://reactjs.org/)                                            | Fast, responsive, and interactive UI |
+| **Backend**  | [FastAPI](https://fastapi.tiangolo.com/)                                    | High-performance API for processing and inference |
+| **Database** | [SQLAlchemy](https://www.sqlalchemy.org/) + Relational DB (PostgreSQL/MySQL)| ORM for structured metadata storage |
 
-### 🔍 Why FARM Stack?
+---
+## 🏗 Minimal Architecture Diagram
 
+```mermaid
+flowchart LR
+    subgraph Client
+        A[User Browser] --> B[React.js Frontend]
+    end
+
+    subgraph Server
+        B --> C[FastAPI Backend]
+        C --> D[SQLAlchemy ORM]
+        D --> E[(Relational Database)]
+    end
+
+    subgraph Analysis
+        C --> F[LDA Topic Modeling]
+        C --> G[Keyword Extraction]
+        F --> H[SDG Classification]
+        G --> H
+        H --> B
+    end
+```
+---
+### Why This Stack?
 - **FastAPI**
-  - ⚡ Asynchronous and extremely fast
-  - 🧪 Auto-generated interactive API docs via Swagger and ReDoc
-  - 🔐 Built-in support for modern Python type hints and validation
+  - ⚡ Extremely fast with async support
+  - 🧪 Interactive API docs (Swagger, ReDoc)
+  - 🔐 Type hinting & built-in validation
 
 - **React.js**
-  - 🔁 Component-based and reactive design
-  - 💻 Ideal for building dynamic forms and data visualizations
-  - 🌐 Works well with RESTful APIs
+  - 🔁 Component-based and reactive
+  - 💻 Excellent for building dynamic forms and visualizations
+  - 🌐 Works seamlessly with REST APIs
 
-- **MongoDB**
-  - 📂 Schema-less and ideal for storing unstructured publication data
-  - 📈 Easy to scale and integrate with modern backend frameworks
-  - ✅ Supports full-text search for keyword mapping
+- **SQLAlchemy**
+  - 🗄 Compatible with PostgreSQL, MySQL, SQLite
+  - 📑 Ideal for structured metadata storage (title, abstract, analysis results)
+  - 🛠 Flexible query building and ORM mapping
 
 ---
 
 ## 📚 Features
-
-- 📝 Upload `.csv`, `.xlsx`, or `json` documents
-- 🧠 Topic modeling using LDA-based models
-- 🗂️ Automatic keyword extraction
-- 🎯 SDG classification based on keyword-to-SDG alignment
-- 📊 Dashboard with interactive charts & knowledge graph
-- 🔍 Full document history & delete functionality
+- 📝 Upload `.csv`, `.xlsx`, or `.json` documents
+- 🧠 Topic modeling (LDA-based)
+- 🗂 Automatic keyword extraction
+- 🎯 SDG classification via keyword-to-SDG mapping
+- 📊 Dashboard with charts & knowledge graph
+- 🔍 Document history & delete functionality
 
 ---
 
 ## 🛠️ Installation & Run
 
-### 1. Clone the Repository
+### 1️⃣ Clone the Repository
 ```bash
 git clone https://github.com/ChinChinMarux/SDGsApp.git
-cd SDGsAPP
+cd SDGsApp
 ```
 ### 2. Setup Backend
 ```bash
 cd backend
 python -m venv venv
-source venv/bin/activate  # or venv\Scripts\activate on Windows
+.venv\Scripts\activate #or use UV instead
 pip install -r requirements.txt
 uvicorn main:app --reload
 ```
@@ -79,14 +101,28 @@ cd frontend
 npm install
 npm run dev
 ```
-### 4. Setup MongoDB URL inside .env
+### 4. Setup SQLAlchemy in models.py
 ```bash
-MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/sdgdb
+engine = create_engine('sqlite:///(yourdatabasename).db', echo = True)
+Base=declarative_base()
+
+## ALL YOUR MODELS HERE##
+
+Base.metadata.create_all(engine)
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 ```
 
 ## API Documentation
-Swagger UI: http://localhost:8000/docs
-ReDoc: http://localhost:8000/redoc
+Swagger UI : http://localhost:8000/docs  
+ReDoc      : http://localhost:8000/redoc
 
 ## 📈 Future Plans
 - ✅ Fine-tuned SDG classifier with machine learning
@@ -95,4 +131,4 @@ ReDoc: http://localhost:8000/redoc
 - 🔐 Role-based access control for stakeholders and researchers
 
 ## 🤝 Acknowledgements
-This project is built in collaboration with the Pusat Riset Sains Data dan Informasi – BRIN Bandung to support national research alignment with the UN Sustainable Development Goals (SDGs).
+This project is built in collaboration with the Pusat Riset Sains Data dan Informasi – BRIN Bandung to support national research alignment with the United Nation Sustainable Development Goals (SDGs).
