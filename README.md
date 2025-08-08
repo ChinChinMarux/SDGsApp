@@ -26,7 +26,7 @@ A web application built using the **FastAPI & React Framework** with **SQLAlchem
 |--------------|-----------------------------------------------------------------------------|-------------|
 | **Frontend** | [React.js](https://reactjs.org/)                                            | Fast, responsive, and interactive UI |
 | **Backend**  | [FastAPI](https://fastapi.tiangolo.com/)                                    | High-performance API for processing and inference |
-| **Database** | [SQLAlchemy](https://www.sqlalchemy.org/) + Relational DB (PostgreSQL/MySQL)| ORM for structured metadata storage |
+| **Database** | [SQLAlchemy](https://www.sqlalchemy.org/)                                   | ORM for structured metadata storage |
 
 ---
 ## 🏗 Minimal Architecture Diagram
@@ -40,7 +40,6 @@ flowchart LR
     subgraph Server
         B --> C[FastAPI Backend]
         C --> D[SQLAlchemy ORM]
-        D --> E[(Relational Database)]
     end
 
     subgraph Analysis
