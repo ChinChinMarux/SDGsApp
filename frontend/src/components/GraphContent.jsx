@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // import React, { useEffect, useState, useRef } from 'react';
 // import ForceGraph2D from 'react-force-graph-2d';
 // import AccountTreeIcon from '@mui/icons-material/AccountTree';
@@ -310,10 +311,43 @@ const GraphContent = ({ toggleDarkMode, isdarkmode }) => {
         setIsLoading(false);
       }
     };
+=======
+import React, { useEffect, useState, useRef } from 'react';
+import ForceGraph2D from 'react-force-graph-2d';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import { useTheme } from '@mui/material/styles';
+import { useAuth } from '@clerk/clerk-react'; 
+import SDGBarChart from './SDGBarChart.jsx';
+import InstitutionPieChart from './InstitutionPieChart.jsx';
 
-    fetchGraphData();
-  }, []);
+const GraphContent = () => {
+  const [graphData, setGraphData] = useState({ nodes: [], links: [] });
+  const [hoveredNode, setHoveredNode] = useState(null);
+  const fgRef = useRef();
+  const theme = useTheme();
+  const { getToken } = useAuth(); 
 
+  useEffect(() => {
+    const fetchGraphData = async () => {
+      try {
+        const token = await getToken();
+        if (!token) {
+          console.error("Token autentikasi tidak ditemukan.");
+          return;
+        }
+>>>>>>> 7f1b227 (Deskripsi perubahan keseluruhan project)
+
+        const response = await fetch('http://127.0.0.1:8000/api/graph-data', {
+          headers: {
+            'Authorization': `Bearer ${token}` 
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+<<<<<<< HEAD
   // Handle window resize
   useEffect(() => {
     const handleResize = () => {
@@ -814,9 +848,218 @@ const GraphContent = ({ toggleDarkMode, isdarkmode }) => {
         Interactive visualization of publications, authors, institutions,
         topics, and SDGs
         {!isMobile && " • Click nodes to explore • Scroll/drag to navigate"}
+=======
+        const data = await response.json();
+        console.log('Data berhasil diambil:', data);
+        setGraphData(data);
+      } catch (error) {
+        console.error('Gagal mengambil graph data:', error);
+      }
+    };
+
+    fetchGraphData();
+  }, [getToken]); 
+
+  useEffect(() => {
+    if (graphData.nodes.length > 0 && fgRef.current) {
+      setTimeout(() => {
+        fgRef.current.zoomToFit(500);
+      }, 500);
+    }
+  }, [graphData]);
+
+  const getNodeColor = (node) => {
+    switch (node.type) {
+      case 'Publication': return '#FFD700';
+      case 'Author': return '#00BFFF';
+      case 'Institution': return '#32CD32';
+      case 'Topic': return '#FF69B4';
+      case 'SDG': return '#FF4500';
+      default: return '#999';
+    }
+  };
+
+  const getNodeLabel = (node) => {
+    if (node.type === 'SDG') {
+      return `${node.name}`;
+    }
+    return node.title || node.full_name || node.name || (node.keywords ? node.keywords.join(', ') : 'Node');
+  };
+
+  const isDark = theme.palette.mode === 'dark';
+  const canvasBgColor = isDark ? '#0f172a' : '#ffffff';
+  const labelColor = isDark ? '#e2e8f0' : '#333';
+
+  const nodeTypes = [
+    { label: 'Publication', color: '#FFD700' },
+    { label: 'Author', color: '#00BFFF' },
+    { label: 'Institution', color: '#32CD32' },
+    { label: 'Topic', color: '#FF69B4' },
+    { label: 'SDG', color: '#FF4500' }
+  ];
+
+  const handleNodeClick = (node) => {
+    if (node.type === 'SDG') {
+      const relatedTopics = graphData.links.filter(link => link.target === node.id && link.type === 'MAPS_TO_SDG');
+      const topicIds = relatedTopics.map(link => link.source);
+      const relatedPublications = graphData.links.filter(link => topicIds.includes(link.target) && link.type === 'HAS_TOPIC');
+
+      const topicKeywords = topicIds.map(tid => {
+        const t = graphData.nodes.find(n => n.id === tid);
+        return t?.keywords?.join(', ');
+      });
+
+      const pubTitles = relatedPublications.map(link => {
+        const p = graphData.nodes.find(n => n.id === link.source);
+        return p?.title;
+      });
+
+      console.log(`🟧 Klik pada SDG: ${node.name}`);
+      console.log('Topik terkait:', topicKeywords);
+      console.log('Publikasi terkait:', pubTitles);
+    }
+  };
+
+  return (
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px', position: 'relative' }}>
+      <div style={{
+        backgroundColor: isDark ? '#1e293b' : '#ffffff',
+        border: '1px solid #e9ecef',
+        borderRadius: '12px',
+        padding: '24px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+          <AccountTreeIcon style={{ color: '#6366f1' }} />
+          <h3 style={{ margin: 0, color: isDark ? '#f1f5f9' : '#111827' }}>
+            Knowledge Graph Visualization
+          </h3>
+        </div>
+
+        <div style={{
+          border: '1px solid #ccc',
+          borderRadius: '10px',
+          overflow: 'hidden'
+        }}>
+          <ForceGraph2D
+            ref={fgRef}
+            graphData={graphData}
+            backgroundColor={canvasBgColor}
+            forceEngine="d3"
+            cooldownTicks={100}
+            nodeRelSize={6}
+            width={window.innerWidth * 0.9}
+            height={600}
+            nodeLabel={getNodeLabel}
+            linkLabel={(link) => link.topic_probability ? `Probabilitas topik: ${link.topic_probability}` : link.type}
+            nodeCanvasObject={(node, ctx, globalScale) => {
+              const label = getNodeLabel(node);
+              const fontSize = 12 / globalScale;
+              ctx.font = `${fontSize}px Segoe UI, Sans-Serif`;
+              ctx.fillStyle = getNodeColor(node);
+              ctx.beginPath();
+              ctx.arc(node.x, node.y, 5, 0, 2 * Math.PI, false);
+              ctx.fill();
+              ctx.fillStyle = labelColor;
+              ctx.fillText(label, node.x + 8, node.y + 3);
+            }}
+            linkColor={() => '#aaa'}
+            linkDirectionalArrowLength={4}
+            linkDirectionalArrowRelPos={1}
+            onNodeClick={handleNodeClick}
+            onNodeHover={setHoveredNode}
+          />
+        </div>
+
+        {/* Tooltip Interaktif */}
+        {hoveredNode && hoveredNode.type === 'SDG' && (
+          <div style={{
+            position: 'absolute',
+            top: 80,
+            right: 40,
+            backgroundColor: isDark ? '#1e293b' : '#ffffff',
+            color: isDark ? '#f1f5f9' : '#111827',
+            padding: '12px 16px',
+            border: '1px solid #ccc',
+            borderRadius: '8px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            whiteSpace: 'pre-wrap',
+            maxWidth: '400px',
+            zIndex: 10
+          }}>
+            {/* Menampilkan properti `tooltip` yang sudah di-format dari backend */}
+            <div style={{ marginTop: '8px', fontSize: '13px' }}>
+              {hoveredNode.tooltip}
+            </div>
+          </div>
+        )}
+
+        <div style={{
+          marginTop: '24px',
+          padding: '8px 16px',
+          borderRadius: '8px',
+          backgroundColor: isDark ? '#0f172a' : '#f9fafb',
+          border: '1px solid #ccc',
+          display: 'flex',
+          gap: '16px',
+          flexWrap: 'wrap',
+          justifyContent: 'center'
+        }}>
+          {nodeTypes.map((type) => (
+            <div key={type.label} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{
+                width: '16px',
+                height: '16px',
+                borderRadius: '50%',
+                backgroundColor: type.color
+              }} />
+              <span style={{ color: isDark ? '#e2e8f0' : '#333' }}>{type.label}</span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{
+          marginTop: '16px',
+          fontSize: '14px',
+          color: isDark ? '#cbd5e1' : '#666',
+          textAlign: 'center'
+        }}>
+          Interaktif graph antara publikasi, penulis, institusi, topik, dan SDG
+        </div>
+      </div>
+{/* Container untuk visualisasi tambahan (Bar Chart dan Pie Chart) */}
+      <div style={{ display: 'flex', gap: '24px', marginTop: '24px', flexWrap: 'wrap' }}>
+        <div style={{ 
+          flex: '1 1 45%', 
+          backgroundColor: isDark ? '#1e293b' : '#ffffff',
+          border: '1px solid #ccc', 
+          borderRadius: '8px', 
+          padding: '16px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+        }}>
+          <h4 style={{ textAlign: 'center', margin: '0 0 16px', color: isDark ? '#f1f5f9' : '#111827' }}>
+            Jumlah Publikasi per SDG
+          </h4>
+          <SDGBarChart />
+        </div>
+        
+        <div style={{ 
+          flex: '1 1 45%',
+          backgroundColor: isDark ? '#1e293b' : '#ffffff',
+          border: '1px solid #ccc', 
+          borderRadius: '8px', 
+          padding: '16px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+        }}>
+          <h4 style={{ textAlign: 'center', margin: '0 0 16px', color: isDark ? '#f1f5f9' : '#111827' }}>
+            Distribusi Publikasi per Institusi
+          </h4>
+          <InstitutionPieChart />
+        </div>
+>>>>>>> 7f1b227 (Deskripsi perubahan keseluruhan project)
       </div>
     </div>
-  );
+  );
 };
 
 export default GraphContent;
