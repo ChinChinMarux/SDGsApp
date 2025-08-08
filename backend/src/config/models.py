@@ -12,6 +12,7 @@ def enforce_foreign_keys(dbapi_connection, connection_record):
     cursor.execute("PRAGMA foreign_keys=ON")
     cursor.close()
 
+<<<<<<< HEAD
 # Mendeklarasikan base untuk model
 Base = declarative_base()
 
@@ -25,6 +26,14 @@ class User(Base):
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
     organization = Column(String, nullable=False, default="No Organization")
+=======
+class User(Base):
+    __tablename__ = 'users'
+    
+    id=Column(String, primary_key=True)
+    user_name=Column(String, nullable=False, default="Researcher")
+    email=Column(String, nullable=False)
+>>>>>>> 4e73095e06b1994bd6c16400150647e864023857
     
     # Mendefinisikan relasi ke tabel lain
     uploaded = relationship("FilesUploaded", back_populates="users", cascade="all, delete-orphan")
@@ -54,6 +63,7 @@ class Corpus(Base):
     __tablename__ = 'corpus'
     
     id = Column(Integer, primary_key=True)
+<<<<<<< HEAD
     file_name = Column(String, nullable=False)
     file_size = Column(Integer, nullable=False)
     file_type = Column(String, nullable=False)
@@ -65,6 +75,15 @@ class Corpus(Base):
     # Kolom untuk DOI
     doi = Column(String, unique=True, nullable=True)
     file_real = Column(LargeBinary, nullable=False)
+=======
+    file_name=Column(String, nullable=False)
+    file_size=Column(Integer, nullable=False)
+    file_type=Column(String, nullable=False)
+    file_id=Column(Integer, ForeignKey(FilesUploaded.id, ondelete="CASCADE"), nullable=False)
+    uploaded_by=Column(String,  ForeignKey(User.id, ondelete="CASCADE"), nullable=False)
+    date_uploaded=Column(DateTime, default=datetime.now)
+    file_real=Column(LargeBinary, nullable=False)
+>>>>>>> 4e73095e06b1994bd6c16400150647e864023857
     
     # TAMBAHAN KOLOM UNTUK DATA GRAFIK
     authors = Column(JSON, nullable=True)
